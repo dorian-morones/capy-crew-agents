@@ -1,5 +1,5 @@
 ---
-name: willy-writer
+name: willy-writter
 description: Writes a formal spec document from a feature request before any code is touched. Use at the start of every feature to enforce spec-first development.
 tools: Glob, Grep, Read, LS
 model: sonnet

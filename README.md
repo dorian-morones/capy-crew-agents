@@ -87,7 +87,7 @@ A set of Claude Code subagents that enforce **Spec-Driven Development**: no code
               └───────────────┬────────────────┘
                               │
                ┌──────────────▼──────────────┐
-               │         willy-writer          │
+               │         willy-writter          │
                │  Reads codebase, writes spec │
                │  specs/<feature>.md          │
                └──────────────┬──────────────┘
@@ -95,7 +95,7 @@ A set of Claude Code subagents that enforce **Spec-Driven Development**: no code
                    ✋ Developer approves spec
                               │
                ┌──────────────▼──────────────┐
-               │       archy         │
+               │       archy-architect         │
                │  DB schema, API contracts,   │
                │  component tree              │
                └──────────────┬──────────────┘
@@ -125,8 +125,8 @@ A set of Claude Code subagents that enforce **Spec-Driven Development**: no code
 
 **Individual agents:**
 ```
-"Use willy-writer to write a spec for [feature]"
-"Use archy on specs/[feature].md"
+"Use willy-writter to write a spec for [feature]"
+"Use archy-architect-architect on specs/[feature].md"
 "Use tupi-planner on specs/[feature].md"
 "Use bera-builder to implement Task 1 from specs/[feature]-tasks.md"
 ```
@@ -136,8 +136,8 @@ A set of Claude Code subagents that enforce **Spec-Driven Development**: no code
 | Agent | Role | Writes code? |
 |-------|------|-------------|
 | [capy](./.claude/agents/capy.md) | Pipeline orchestrator | No |
-| [willy-writer](./.claude/agents/willy-writer.md) | Feature spec writer | No |
-| [archy](./.claude/agents/archy.md) | Technical architect | No |
+| [willy-writter](./.claude/agents/willy-writter.md) | Feature spec writer | No |
+| [archy-architect](./.claude/agents/archy-architect.md) | Technical architect | No |
 | [tupi-planner](./.claude/agents/tupi-planner.md) | Task list planner | No |
 | [bera-builder](./.claude/agents/bera-builder.md) | Spec-faithful implementer | Yes |
 
