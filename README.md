@@ -79,7 +79,7 @@ Five subagents that take a feature from raw idea to committed code, with develop
 **1. Add the marketplace (one-time per machine):**
 
 ```bash
-claude plugin marketplace add github:dorian-morones/capy-crew-agents
+claude plugin marketplace add dorian-morones/capy-crew-agents
 ```
 
 **2. Install the plugin:**
