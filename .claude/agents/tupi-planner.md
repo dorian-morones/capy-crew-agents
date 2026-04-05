@@ -1,5 +1,5 @@
 ---
-name: gourd-planner
+name: tupi-planner
 description: Takes a spec with approved architecture and produces an ordered, atomic task list where each task is independently committable and ~2 hours max.
 tools: Read, LS
 model: sonnet

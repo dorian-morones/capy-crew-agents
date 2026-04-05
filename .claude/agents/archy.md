@@ -1,5 +1,5 @@
 ---
-name: capi-architect
+name: archy
 description: Takes an approved spec and produces a technical architecture document — DB schema, API route contracts, component structure, and TypeScript types. No code written, only decisions documented.
 tools: Glob, Grep, Read, LS
 model: sonnet

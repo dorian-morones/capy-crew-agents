@@ -1,5 +1,5 @@
 ---
-name: bara-builder
+name: bera-builder
 description: Implements a single task from an approved task list, strictly following the spec. Reads the spec before touching any code and builds only what the task describes.
 tools: Glob, Grep, Read, Write, Edit, Bash, LS
 model: sonnet

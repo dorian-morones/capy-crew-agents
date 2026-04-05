@@ -87,7 +87,7 @@ A set of Claude Code subagents that enforce **Spec-Driven Development**: no code
               └───────────────┬────────────────┘
                               │
                ┌──────────────▼──────────────┐
-               │         tupi-writer          │
+               │         willy-writer          │
                │  Reads codebase, writes spec │
                │  specs/<feature>.md          │
                └──────────────┬──────────────┘
@@ -95,13 +95,13 @@ A set of Claude Code subagents that enforce **Spec-Driven Development**: no code
                    ✋ Developer approves spec
                               │
                ┌──────────────▼──────────────┐
-               │       capi-architect         │
+               │       archy         │
                │  DB schema, API contracts,   │
                │  component tree              │
                └──────────────┬──────────────┘
                               │
                ┌──────────────▼──────────────┐
-               │        gourd-planner         │
+               │        tupi-planner         │
                │  Ordered atomic task list    │
                │  specs/<feature>-tasks.md    │
                └──────────────┬──────────────┘
@@ -109,7 +109,7 @@ A set of Claude Code subagents that enforce **Spec-Driven Development**: no code
                    ✋ Developer approves tasks
                               │
                ┌──────────────▼──────────────┐
-               │         bara-builder         │
+               │         bera-builder         │
                │  Task 1 → commit             │
                │  Task 2 → commit             │
                │  Task N → commit             │
@@ -125,10 +125,10 @@ A set of Claude Code subagents that enforce **Spec-Driven Development**: no code
 
 **Individual agents:**
 ```
-"Use tupi-writer to write a spec for [feature]"
-"Use capi-architect on specs/[feature].md"
-"Use gourd-planner on specs/[feature].md"
-"Use bara-builder to implement Task 1 from specs/[feature]-tasks.md"
+"Use willy-writer to write a spec for [feature]"
+"Use archy on specs/[feature].md"
+"Use tupi-planner on specs/[feature].md"
+"Use bera-builder to implement Task 1 from specs/[feature]-tasks.md"
 ```
 
 ### Agent reference
@@ -136,10 +136,10 @@ A set of Claude Code subagents that enforce **Spec-Driven Development**: no code
 | Agent | Role | Writes code? |
 |-------|------|-------------|
 | [capy](./.claude/agents/capy.md) | Pipeline orchestrator | No |
-| [tupi-writer](./.claude/agents/tupi-writer.md) | Feature spec writer | No |
-| [capi-architect](./.claude/agents/capi-architect.md) | Technical architect | No |
-| [gourd-planner](./.claude/agents/gourd-planner.md) | Task list planner | No |
-| [bara-builder](./.claude/agents/bara-builder.md) | Spec-faithful implementer | Yes |
+| [willy-writer](./.claude/agents/willy-writer.md) | Feature spec writer | No |
+| [archy](./.claude/agents/archy.md) | Technical architect | No |
+| [tupi-planner](./.claude/agents/tupi-planner.md) | Task list planner | No |
+| [bera-builder](./.claude/agents/bera-builder.md) | Spec-faithful implementer | Yes |
 
 ## Agent Personas
 
