@@ -76,10 +76,16 @@ Five subagents that take a feature from raw idea to committed code, with develop
 
 ## Install
 
-**As a Claude Code plugin (recommended):**
+**1. Add the marketplace (one-time per machine):**
 
 ```bash
-claude plugin install github:dorian-morones/capy-crew-agents
+claude marketplace add github:dorian-morones/capy-crew-agents
+```
+
+**2. Install the plugin:**
+
+```bash
+claude plugin install capy-crew-agents
 ```
 
 This makes all agents and the `/capy` slash command available in every project.
