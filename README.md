@@ -1,9 +1,8 @@
-# capy-crew-agents
+# Capy Crew Agents
 
 ![capy-crew-agents](./banner.png)
 
 A personal library of agent skills, reference checklists, and agent personas built for my development process.
-
 
 
 ## How It Works
