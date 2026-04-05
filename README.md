@@ -70,7 +70,76 @@ Quick-reference checklists used alongside skills:
 - [security-checklist.md](./references/security-checklist.md) — OWASP, headers, CORS
 - [performance-checklist.md](./references/performance-checklist.md) — Core Web Vitals, API latency
 
+## Capy-Crew — SDD Agent Pipeline
+
+A set of Claude Code subagents that enforce **Spec-Driven Development**: no code is written until a spec is approved.
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        Feature Request                              │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │
+                               ▼
+              ┌────────────────────────────────┐
+              │         tupi-writer            │
+              │  Reads codebase, writes spec   │
+              │  specs/<feature>.md            │
+              │  (read-only — no code)         │
+              └───────────────┬────────────────┘
+                              │
+                   Developer reviews + approves spec
+                              │
+                              ▼
+              ┌────────────────────────────────┐
+              │        capi-architect          │
+              │  Designs DB schema, API        │
+              │  contracts, component tree     │
+              │  (read-only — no code)         │
+              └───────────────┬────────────────┘
+                              │
+                              ▼
+              ┌────────────────────────────────┐
+              │        gourd-planner           │
+              │  Produces ordered atomic       │
+              │  task list — one layer per     │
+              │  task, ~2h max each            │
+              │  specs/<feature>-tasks.md      │
+              └───────────────┬────────────────┘
+                              │
+                   Developer reviews + approves tasks
+                              │
+                    ┌─────────┴─────────┐
+                    │                   │
+                    ▼                   ▼
+       ┌────────────────────┐  ┌────────────────────┐
+       │    bara-builder    │  │    bara-builder    │
+       │    Task 1: DB      │  │    Task 2: API     │  ...
+       │    migration       │  │    routes          │
+       │    → commit        │  │    → commit        │
+       └────────────────────┘  └────────────────────┘
+```
+
+### How to use
+
+```
+"Use tupi-writer to write a spec for [feature]"
+"Use capi-architect on specs/[feature].md"
+"Use gourd-planner on specs/[feature].md"
+"Use bara-builder to implement Task 1 from specs/[feature]-tasks.md"
+```
+
+### Agent reference
+
+| Agent | Role | Writes code? |
+|-------|------|-------------|
+| [tupi-writer](./.claude/agents/tupi-writer.md) | Feature spec writer | No |
+| [capi-architect](./.claude/agents/capi-architect.md) | Technical architect | No |
+| [gourd-planner](./.claude/agents/gourd-planner.md) | Task list planner | No |
+| [bara-builder](./.claude/agents/bara-builder.md) | Spec-faithful implementer | Yes |
+
 ## Agent Personas
+
+Personas for focused review sessions (loaded as context, not subagents):
 
 - [code-reviewer.md](./agents/code-reviewer.md)
 - [test-engineer.md](./agents/test-engineer.md)
