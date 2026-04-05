@@ -98,6 +98,12 @@ claude plugin list
 
 You should see `capy-crew-agents` in the list.
 
+**To update to the latest version:**
+
+```bash
+claude plugin update capy-crew-agents
+```
+
 ---
 
 ## Usage
