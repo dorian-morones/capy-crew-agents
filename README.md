@@ -1,8 +1,10 @@
-# dmx-agents
+# capy-crew-agents
+
+![capy-crew-agents](./banner.png)
 
 A personal library of agent skills, reference checklists, and agent personas built for my development process.
 
-Structured after [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) — the same format, customized for my stack: **Bun/Elysia API**, **Next.js App Router**, **Supabase**, **Clerk**, **Render**, and **Vercel**.
+
 
 ## How It Works
 
@@ -11,13 +13,13 @@ Skills are markdown files with YAML frontmatter. Claude Code (and compatible age
 ## Install
 
 ```bash
-claude mcp add --transport http dmx-agents https://raw.githubusercontent.com/dorian-morones/dmx-agents/main
+claude mcp add --transport http capy-crew-agents https://raw.githubusercontent.com/dorian-morones/capy-crew-agents/main
 ```
 
 Or clone locally and reference from your project's `CLAUDE.md`:
 
 ```bash
-git clone https://github.com/dorian-morones/dmx-agents ~/.dmx-agents
+git clone https://github.com/dorian-morones/capy-crew-agents ~/.capy-crew-agents
 ```
 
 ## Skill Catalog
