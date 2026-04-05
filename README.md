@@ -81,46 +81,49 @@ A set of Claude Code subagents that enforce **Spec-Driven Development**: no code
                                │
                                ▼
               ┌────────────────────────────────┐
-              │         tupi-writer            │
-              │  Reads codebase, writes spec   │
-              │  specs/<feature>.md            │
-              │  (read-only — no code)         │
+              │             capy               │  ← orchestrator
+              │  Coordinates the full pipeline │
+              │  with approval gates           │
               └───────────────┬────────────────┘
                               │
-                   Developer reviews + approves spec
+               ┌──────────────▼──────────────┐
+               │         tupi-writer          │
+               │  Reads codebase, writes spec │
+               │  specs/<feature>.md          │
+               └──────────────┬──────────────┘
                               │
-                              ▼
-              ┌────────────────────────────────┐
-              │        capi-architect          │
-              │  Designs DB schema, API        │
-              │  contracts, component tree     │
-              │  (read-only — no code)         │
-              └───────────────┬────────────────┘
+                   ✋ Developer approves spec
                               │
-                              ▼
-              ┌────────────────────────────────┐
-              │        gourd-planner           │
-              │  Produces ordered atomic       │
-              │  task list — one layer per     │
-              │  task, ~2h max each            │
-              │  specs/<feature>-tasks.md      │
-              └───────────────┬────────────────┘
+               ┌──────────────▼──────────────┐
+               │       capi-architect         │
+               │  DB schema, API contracts,   │
+               │  component tree              │
+               └──────────────┬──────────────┘
                               │
-                   Developer reviews + approves tasks
+               ┌──────────────▼──────────────┐
+               │        gourd-planner         │
+               │  Ordered atomic task list    │
+               │  specs/<feature>-tasks.md    │
+               └──────────────┬──────────────┘
                               │
-                    ┌─────────┴─────────┐
-                    │                   │
-                    ▼                   ▼
-       ┌────────────────────┐  ┌────────────────────┐
-       │    bara-builder    │  │    bara-builder    │
-       │    Task 1: DB      │  │    Task 2: API     │  ...
-       │    migration       │  │    routes          │
-       │    → commit        │  │    → commit        │
-       └────────────────────┘  └────────────────────┘
+                   ✋ Developer approves tasks
+                              │
+               ┌──────────────▼──────────────┐
+               │         bara-builder         │
+               │  Task 1 → commit             │
+               │  Task 2 → commit             │
+               │  Task N → commit             │
+               └─────────────────────────────┘
 ```
 
 ### How to use
 
+**Full pipeline (recommended):**
+```
+"Use capy to build [feature request]"
+```
+
+**Individual agents:**
 ```
 "Use tupi-writer to write a spec for [feature]"
 "Use capi-architect on specs/[feature].md"
@@ -132,6 +135,7 @@ A set of Claude Code subagents that enforce **Spec-Driven Development**: no code
 
 | Agent | Role | Writes code? |
 |-------|------|-------------|
+| [capy](./.claude/agents/capy.md) | Pipeline orchestrator | No |
 | [tupi-writer](./.claude/agents/tupi-writer.md) | Feature spec writer | No |
 | [capi-architect](./.claude/agents/capi-architect.md) | Technical architect | No |
 | [gourd-planner](./.claude/agents/gourd-planner.md) | Task list planner | No |
