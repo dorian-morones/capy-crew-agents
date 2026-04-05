@@ -181,6 +181,20 @@ Personas for focused review sessions — load as context, not subagents:
 
 ---
 
+## Roadmap
+
+| Item | Status | Description |
+|------|--------|-------------|
+| **Hooks implementation** | Planned | Wire up `hooks/` lifecycle scripts — run shell commands on session start/end, before/after tool calls, or on specific triggers |
+| **More skills** | Ongoing | Expand coverage: mobile (React Native/Swift), infrastructure (Terraform, Docker), data pipelines, LLM app patterns |
+| **Persistent memory** | Planned | Let agents write and recall project-level facts across sessions — decisions made, patterns established, known constraints |
+| **Skill versioning** | Planned | Tag and pin skill versions so projects can lock to a known-good set and opt into upgrades deliberately |
+| **Community skill registry** | Idea | A shared index of installable skills from the community — `claude plugin install skill:api-route-design@dorian` |
+| **Skill usage analytics** | Idea | Track which skills fire most often per project to surface gaps and refine trigger conditions |
+| **Cross-project context** | Idea | A `global/` layer of references and personas that apply across all projects without per-project config |
+
+---
+
 ## Contributing
 
 ### Adding a new skill
