@@ -2,75 +2,9 @@
 
 ![capy-crew-agents](./banner.png)
 
-A Claude Code plugin that enforces **Spec-Driven Development** through a crew of specialized subagents — and packages the skills, checklists, and personas that support the full development lifecycle.
+A Claude Code plugin that enforces **Spec-Driven Development** — no code gets written before a spec is approved.
 
----
-
-## What is this?
-
-Capy Crew Agents is a personal Claude Code plugin built around one core idea: **no code gets written before a spec is approved**.
-
-It bundles two things:
-
-**1. The capy-crew — a SDD agent pipeline**
-Five subagents that take a feature from raw idea to committed code, with developer approval gates between each phase. The crew enforces the discipline of writing a spec and a task list before `bera-builder` touches a single file.
-
-**2. A library of skills, references, and personas**
-13 skills covering the full development lifecycle (Define → Plan → Build → Verify → Review → Ship), 6 reference checklists, and 3 review personas — all tuned to the Bun/Elysia + Next.js + Supabase + Clerk stack.
-
----
-
-## The Capy-Crew Pipeline
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        Feature Request                              │
-└──────────────────────────────┬──────────────────────────────────────┘
-                               │
-                               ▼
-              ┌────────────────────────────────┐
-              │             capy               │  ← orchestrator
-              │  Coordinates the full pipeline │
-              │  with approval gates           │
-              └───────────────┬────────────────┘
-                              │
-               ┌──────────────▼──────────────┐
-               │         willy-writter        │
-               │  Reads codebase, writes spec │
-               │  specs/<feature>.md          │
-               └──────────────┬──────────────┘
-                              │
-                   ✋ Developer approves spec
-                              │
-               ┌──────────────▼──────────────┐
-               │        archy-architect       │
-               │  DB schema, API contracts,   │
-               │  component tree              │
-               └──────────────┬──────────────┘
-                              │
-               ┌──────────────▼──────────────┐
-               │          tupi-planner        │
-               │  Ordered atomic task list    │
-               │  specs/<feature>-tasks.md    │
-               └──────────────┬──────────────┘
-                              │
-                   ✋ Developer approves tasks
-                              │
-               ┌──────────────▼──────────────┐
-               │          bera-builder        │
-               │  Task 1 → commit             │
-               │  Task 2 → commit             │
-               │  Task N → commit             │
-               └─────────────────────────────┘
-```
-
-| Agent | Role | Writes code? |
-|-------|------|-------------|
-| [capy](./agents/capy.md) | Pipeline orchestrator | No |
-| [willy-writter](./agents/willy-writter.md) | Feature spec writer | No |
-| [archy-architect](./agents/archy-architect.md) | Technical architect | No |
-| [tupi-planner](./agents/tupi-planner.md) | Task list planner | No |
-| [bera-builder](./agents/bera-builder.md) | Spec-faithful implementer | Yes |
+It bundles four slash commands (one per phase), a library of auto-loading skills, and a set of agent personas for focused work sessions.
 
 ---
 
@@ -88,83 +22,112 @@ claude plugin marketplace add dorian-morones/capy-crew-agents
 claude plugin install capy-crew-agents
 ```
 
-This makes all agents and the `/capy` slash command available in every project.
-
-**Verify the install:**
+**3. Update when new versions ship:**
 
 ```bash
-claude plugin list
-```
-
-You should see `capy-crew-agents` in the list.
-
-**To update to the latest version:**
-
-```bash
+claude plugin marketplace update dorian-morones/capy-crew-agents
 claude plugin update capy-crew-agents
 ```
 
 ---
 
-## Usage
+## The SDD Pipeline
 
-**Start the full SDD pipeline:**
+Run each phase in order. You control the gates — move to the next phase only when you're satisfied with the output.
 
-```
-/capy add CSV import for feedback
-```
-
-Capy will run the crew in sequence — writing the spec, designing the architecture, breaking down tasks, and implementing them one commit at a time.
-
-**Or invoke agents individually:**
+### Phase 1 — Spec
 
 ```
-"Use willy-writter to write a spec for [feature]"
-"Use archy-architect on specs/[feature].md"
-"Use tupi-planner on specs/[feature].md"
-"Use bera-builder to implement Task 1 from specs/[feature]-tasks.md"
+/capy-crew-agents:spec add CSV import for feedback
 ```
+
+Runs as **willy-writter** (Haiku). Explores the codebase and writes a formal spec to `specs/<feature>.md` covering user story, acceptance criteria, API surface, data model, UI changes, and open questions.
+
+### Phase 2 — Architecture
+
+```
+/capy-crew-agents:architect
+```
+
+Runs as **archy-architect** (Opus). Reads the spec, explores existing patterns, and appends an `## Architecture` section with DB schema, API routes, TypeScript types, frontend file decisions, and dependency order.
+
+### Phase 3 — Task List
+
+```
+/capy-crew-agents:plan
+```
+
+Runs as **tupi-planner** (Opus). Reads the spec + architecture and writes an ordered task list to `specs/<feature>-tasks.md`. One task per layer, each ≤2 hours and independently committable.
+
+### Phase 4 — Implementation
+
+```
+/capy-crew-agents:build Task 1
+/capy-crew-agents:build Task 2
+```
+
+Runs as **bera-builder** (Sonnet). Implements exactly the specified task — reads the spec and task list first, matches existing patterns, reports what changed, and suggests a commit message. Does not commit.
+
+---
+
+## Agents
+
+The crew members are also available as explicit personas for one-off sessions:
+
+```
+"use willy-writter to write a spec for [feature]"
+"use archy-architect on specs/[feature].md"
+"use tupi-planner on specs/[feature].md"
+"use bera-builder to implement Task 1 from specs/[feature]-tasks.md"
+```
+
+| Agent | Model | Role | Writes code? |
+|-------|-------|------|-------------|
+| [willy-writter](./agents/willy-writter.md) | Haiku | Feature spec writer | No |
+| [archy-architect](./agents/archy-architect.md) | Opus | Technical architect | No |
+| [tupi-planner](./agents/tupi-planner.md) | Opus | Task list planner | No |
+| [bera-builder](./agents/bera-builder.md) | Sonnet | Spec-faithful implementer | Yes |
 
 ---
 
 ## Skill Catalog
 
-Skills are loaded automatically when the plugin is installed. They guide Claude's behavior for each phase of development.
+Skills load automatically when their trigger condition matches. No invocation needed.
 
 ### Define
-| Skill | When to use |
-|-------|-------------|
+| Skill | Trigger |
+|-------|---------|
 | [idea-refine](./skills/idea-refine/SKILL.md) | Idea is vague or underspecified |
 | [feature-spec](./skills/feature-spec/SKILL.md) | Starting any non-trivial feature |
 
 ### Plan
-| Skill | When to use |
-|-------|-------------|
+| Skill | Trigger |
+|-------|---------|
 | [planning-and-task-breakdown](./skills/planning-and-task-breakdown/SKILL.md) | Breaking a spec into executable tasks |
 
 ### Build
-| Skill | When to use |
-|-------|-------------|
+| Skill | Trigger |
+|-------|---------|
 | [supabase-data-modeling](./skills/supabase-data-modeling/SKILL.md) | Adding tables, RLS policies, migrations |
 | [api-route-design](./skills/api-route-design/SKILL.md) | Creating or modifying Elysia routes |
 | [nextjs-component-patterns](./skills/nextjs-component-patterns/SKILL.md) | Building Next.js pages or components |
 | [incremental-implementation](./skills/incremental-implementation/SKILL.md) | Shipping in vertical slices |
 
 ### Verify
-| Skill | When to use |
-|-------|-------------|
+| Skill | Trigger |
+|-------|---------|
 | [e2e-with-playwright](./skills/e2e-with-playwright/SKILL.md) | Writing Playwright E2E tests |
 | [debugging-and-error-recovery](./skills/debugging-and-error-recovery/SKILL.md) | Stuck on a bug for more than 15 minutes |
 
 ### Review
-| Skill | When to use |
-|-------|-------------|
+| Skill | Trigger |
+|-------|---------|
 | [code-review-and-quality](./skills/code-review-and-quality/SKILL.md) | Reviewing a PR or self-reviewing |
 | [security-hardening](./skills/security-hardening/SKILL.md) | Touching auth, data access, or API exposure |
 
 ### Ship
-| Skill | When to use |
-|-------|-------------|
+| Skill | Trigger |
+|-------|---------|
 | [git-workflow-and-versioning](./skills/git-workflow-and-versioning/SKILL.md) | Committing or preparing a PR |
 | [vercel-render-deploy](./skills/vercel-render-deploy/SKILL.md) | Deploying to Vercel or Render |
 
@@ -185,7 +148,12 @@ Quick-reference checklists used alongside skills:
 
 ## Review Personas
 
-Personas for focused review sessions — load as context, not subagents:
+For focused review sessions — invoke explicitly:
+
+```
+"use code-reviewer to review this PR"
+"use security-auditor on src/routes/payments.ts"
+```
 
 - [code-reviewer.md](./agents/code-reviewer.md) — correctness, security, maintainability
 - [test-engineer.md](./agents/test-engineer.md) — behavior coverage, Playwright patterns
@@ -193,37 +161,22 @@ Personas for focused review sessions — load as context, not subagents:
 
 ---
 
-## Roadmap
-
-| Item | Status | Description |
-|------|--------|-------------|
-| **Hooks implementation** | Planned | Wire up `hooks/` lifecycle scripts — run shell commands on session start/end, before/after tool calls, or on specific triggers |
-| **More skills** | Ongoing | Expand coverage: mobile (React Native/Swift), infrastructure (Terraform, Docker), data pipelines, LLM app patterns |
-| **Persistent memory** | Planned | Let agents write and recall project-level facts across sessions — decisions made, patterns established, known constraints |
-| **Skill versioning** | Planned | Tag and pin skill versions so projects can lock to a known-good set and opt into upgrades deliberately |
-| **Community skill registry** | Idea | A shared index of installable skills from the community — `claude plugin install skill:api-route-design@dorian` |
-| **Skill usage analytics** | Idea | Track which skills fire most often per project to surface gaps and refine trigger conditions |
-| **Cross-project context** | Idea | A `global/` layer of references and personas that apply across all projects without per-project config |
-
----
-
 ## Contributing
 
-### Adding a new skill
+### Adding a skill
 
-1. Create a directory under `skills/`: `skills/my-skill/`
-2. Add `SKILL.md` following the format in [docs/skill-anatomy.md](./docs/skill-anatomy.md)
-3. Required frontmatter:
+1. Create `skills/my-skill/SKILL.md`
+2. Required frontmatter:
    ```yaml
    ---
    name: my-skill
    description: Use when [specific trigger]. [One-sentence outcome].
    ---
    ```
-4. Required sections: Overview → When to Use → Core Process → Specific Techniques → Common Rationalizations → Red Flags → Verification
-5. Add an entry to the Skill Catalog in this README
+3. Required sections: Overview → When to Use → Core Process → Techniques → Red Flags → Verification
+4. Add to the Skill Catalog above
 
-### Adding a new agent
+### Adding an agent
 
 1. Add a `.md` file to `agents/`
 2. Required frontmatter:
@@ -231,24 +184,17 @@ Personas for focused review sessions — load as context, not subagents:
    ---
    name: agent-name
    description: One sentence describing what it does and when to use it
-   tools: Glob, Grep, Read, ...
+   tools: Glob, Grep, Read, Write, Edit, Bash, LS
    model: sonnet
    color: blue
    ---
    ```
-3. If the agent is part of the capy-crew pipeline, update `agents/capy.md` to include it
-
-### Adding a new reference
-
-1. Add a `.md` file to `references/`
-2. Use checklist format (`- [ ]`) for items that need to be verified
-3. Add an entry to the References section in this README
 
 ### Standards
 
 - Skill descriptions start with `"Use when"` — this is how Claude decides whether to load the skill
 - Agent instructions are direct and imperative — no hedging
-- Verification sections use checkboxes — every item must be binary (done or not done)
-- No skill should exceed 1500 lines — move large examples to supporting files
+- Verification sections use checkboxes — every item must be binary
+- No skill should exceed 1500 lines
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide and [docs/skill-anatomy.md](./docs/skill-anatomy.md) for the skill format reference.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide.
