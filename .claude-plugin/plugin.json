@@ -1,8 +1,11 @@
 {
   "name": "capy-crew-agents",
   "description": "Spec-Driven Development pipeline with the capy-crew: willy-writter (spec), archy-architect (architecture), tupi-planner (tasks), bera-builder (implementation), orchestrated by capy.",
+  "version": "0.4.0",
   "author": {
-    "name": "Dorian Morones",
-    "email": "dorianm393@gmail.com"
-  }
+    "name": "Dorian Morones"
+  },
+  "homepage": "https://github.com/dorian-morones/capy-crew-agents",
+  "repository": "https://github.com/dorian-morones/capy-crew-agents",
+  "license": "MIT"
 }
