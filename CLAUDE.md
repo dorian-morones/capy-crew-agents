@@ -1,4 +1,4 @@
-# dmx-agents — Claude Instructions
+# capy-crew-agents — Claude Instructions
 
 This repository contains personal agent skills for use with Claude Code.
 
@@ -16,13 +16,13 @@ Add this to the project's `CLAUDE.md`:
 
 ```markdown
 ## Agent Skills
-Skills are available from ~/.dmx-agents. Load the relevant skill when the trigger condition matches.
+Skills are available from ~/.capy-crew-agents. Load the relevant skill when the trigger condition matches.
 ```
 
 Or reference specific skills explicitly:
 
 ```markdown
-When building Elysia routes, use the api-route-design skill from ~/.dmx-agents/skills/api-route-design/SKILL.md
+When building Elysia routes, use the api-route-design skill from ~/.capy-crew-agents/skills/api-route-design/SKILL.md
 ```
 
 ## Slash Commands
