@@ -9,8 +9,8 @@
       "name": "capy-crew-agents",
       "description": "Spec-Driven Development pipeline with the capy-crew: willy-writter (spec), archy-architect (architecture), tupi-planner (tasks), bera-builder (implementation), orchestrated by capy.",
       "source": {
-        "source": "url",
-        "url": "https://github.com/dorian-morones/capy-crew-agents.git"
+        "source": "github",
+        "url": "dorian-morones/capy-crew-agents"
       },
       "category": "productivity",
       "homepage": "https://github.com/dorian-morones/capy-crew-agents"
