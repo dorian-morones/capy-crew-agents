@@ -9,6 +9,8 @@ The capy skill orchestrates the full SDD pipeline. It coordinates the four speci
 
 Capy does not write specs, architecture, or code directly. It delegates every task to the appropriate skill and manages the pipeline flow. Its only jobs are: coordinate, summarize, gate, and iterate.
 
+Each SDD phase runs in a dedicated subagent spawned via the Agent tool. Subagents receive an explicit prompt that instructs them to invoke the relevant skill (writer, architect, planner, or builder) via the Skill tool and return a structured result block. The subagent does the work in isolation; capy reads the result block and manages all approval gates, summaries, and pipeline decisions in the main conversation. Never perform phase work in the main thread — always spawn a subagent.
+
 When the capy skill is active, adopt the orchestrator role for the entire session. Do not exit this role until the feature is complete or the developer explicitly stops the pipeline.
 
 ## When to Use
@@ -28,7 +30,13 @@ When the capy skill is active, adopt the orchestrator role for the entire sessio
 ### Phase 1 — Spec
 
 1. Receive the feature request from the developer.
-2. Invoke the **writer** skill with the feature request. Write the spec to `specs/<feature-name>.md`.
+2. Spawn a writer subagent using the Agent tool:
+   - `subagent_type`: "capy-crew-agents:writer"
+   - `description`: "Write feature spec: [feature name]"
+   - `prompt`: Writer Subagent Prompt (see Subagent Prompt Templates)
+   - `run_in_background`: false
+
+   Wait for the subagent to complete and extract its `## CAPY_RESULT` block.
 3. Read the completed spec and present a summary:
    - User story (one sentence)
    - Acceptance criteria count
@@ -58,7 +66,13 @@ If changes are requested, re-run the writer skill with the feedback. Repeat unti
 
 ### Phase 2 — Architecture
 
-5. Once the spec is approved, invoke the **architect** skill on `specs/<feature-name>.md`.
+5. Once the spec is approved, spawn an architect subagent using the Agent tool:
+   - `subagent_type`: "capy-crew-agents:architect"
+   - `description`: "Write architecture for: specs/[feature-name].md"
+   - `prompt`: Architect Subagent Prompt (see Subagent Prompt Templates)
+   - `run_in_background`: false
+
+   Wait for the subagent to complete and extract its `## CAPY_RESULT` block.
 6. Read the completed architecture section and present a summary:
    - DB changes (new tables or columns)
    - New API routes
@@ -71,7 +85,13 @@ If changes are requested, re-run the writer skill with the feedback. Repeat unti
 
 ### Phase 3 — Task List
 
-8. Invoke the **planner** skill on `specs/<feature-name>.md`.
+8. Spawn a planner subagent using the Agent tool:
+   - `subagent_type`: "capy-crew-agents:planner"
+   - `description`: "Plan tasks for: specs/[feature-name].md"
+   - `prompt`: Planner Subagent Prompt (see Subagent Prompt Templates)
+   - `run_in_background`: false
+
+   Wait for the subagent to complete and extract its `## CAPY_RESULT` block.
 9. Read the completed task list and present a summary:
    - Total task count
    - Estimated total size
@@ -101,8 +121,14 @@ If changes are requested, re-run the planner skill with the feedback. Repeat unt
 11. Once the task list is approved, iterate through each task:
 
 For each task:
-- Invoke the **builder** skill: "Implement Task [N]: [task name] from specs/<feature-name>.md and specs/<feature-name>-tasks.md"
-- After the task is complete, report what was built and which files changed
+- Spawn a builder subagent using the Agent tool:
+  - `subagent_type`: "capy-crew-agents:builder"
+  - `description`: "Implement Task [N]: [task name]"
+  - `prompt`: Builder Subagent Prompt (see Subagent Prompt Templates), with task number and name filled in
+  - `run_in_background`: false
+
+  Builder tasks run sequentially. Each requires developer approval before the next. Never background or parallelize builder subagents.
+- After the subagent completes, extract its `## CAPY_RESULT` block and report what was built and which files changed
 - Remind the developer to commit: `git add [files] && git commit -m "[suggested commit message]"`
 - Ask before continuing:
 
@@ -140,6 +166,138 @@ Suggested next steps:
 - Run the reviewer skill on the diff before requesting review
 ```
 
+## Subagent Prompt Templates
+
+Each subagent receives a self-contained prompt — it starts with no context from the main conversation. All subagents must end their response with a `## CAPY_RESULT` block so capy can parse the outcome.
+
+---
+
+### Writer Subagent Prompt
+
+Spawn with `subagent_type: "capy-crew-agents:writer"`.
+
+```
+Feature request:
+<FEATURE_REQUEST>
+
+Use the Skill tool to run the writer skill: Skill({ skill: "capy-crew-agents:writer", args: "<FEATURE_REQUEST>" })
+
+After the spec is complete, end your response with:
+
+## CAPY_RESULT
+status: success
+spec_path: specs/<feature-name>.md
+user_story: <one-sentence user story>
+acceptance_criteria_count: <N>
+new_routes: <comma-separated list, or "none">
+table_changes: <comma-separated list, or "none">
+open_questions_count: <N>
+
+On failure, end with:
+
+## CAPY_RESULT
+status: error
+error: <what went wrong>
+```
+
+---
+
+### Architect Subagent Prompt
+
+Spawn with `subagent_type: "capy-crew-agents:architect"`.
+
+```
+Spec file: specs/<FEATURE_NAME>.md
+
+Use the Skill tool to run the architect skill: Skill({ skill: "capy-crew-agents:architect", args: "specs/<FEATURE_NAME>.md" })
+
+After the architecture section is appended, end your response with:
+
+## CAPY_RESULT
+status: success
+spec_path: specs/<FEATURE_NAME>.md
+db_changes: <comma-separated list, or "none">
+new_routes: <comma-separated list, or "none">
+new_frontend_files: <comma-separated list, or "none">
+open_decisions_count: <N>
+open_decisions: <each [DECISION] item on its own line, or "none">
+
+On failure, end with:
+
+## CAPY_RESULT
+status: error
+error: <what went wrong>
+```
+
+---
+
+### Planner Subagent Prompt
+
+Spawn with `subagent_type: "capy-crew-agents:planner"`.
+
+```
+Spec file: specs/<FEATURE_NAME>.md
+
+Use the Skill tool to run the planner skill: Skill({ skill: "capy-crew-agents:planner", args: "specs/<FEATURE_NAME>.md" })
+
+After the task list is saved, end your response with:
+
+## CAPY_RESULT
+status: success
+tasks_path: specs/<FEATURE_NAME>-tasks.md
+task_count: <N>
+total_estimate: <Xh>
+tasks:
+  - Task 1: <name> (<size>)
+  - Task 2: <name> (<size>)
+split_items: <any [SPLIT] tasks, or "none">
+
+On failure, end with:
+
+## CAPY_RESULT
+status: error
+error: <what went wrong>
+```
+
+---
+
+### Builder Subagent Prompt
+
+Spawn with `subagent_type: "capy-crew-agents:builder"`.
+
+```
+Spec file: specs/<FEATURE_NAME>.md
+Task list: specs/<FEATURE_NAME>-tasks.md
+Task to implement: Task <N> — <TASK_NAME>
+
+Use the Skill tool to run the builder skill: Skill({ skill: "capy-crew-agents:builder", args: "Implement Task <N>: <TASK_NAME> from specs/<FEATURE_NAME>.md and specs/<FEATURE_NAME>-tasks.md" })
+
+Implement only Task <N>. After it is complete, end your response with:
+
+## CAPY_RESULT
+status: success
+task_number: <N>
+task_name: <TASK_NAME>
+files_changed:
+  - path/to/file.ts — what was added or modified
+done_conditions_met: <yes / no / partial>
+suggested_commit: <commit message>
+next_task: <Task N+1: name, or "none — this was the last task">
+notes: <unrelated issues noticed but not changed, or "none">
+
+On failure, end with:
+
+## CAPY_RESULT
+status: error
+task_number: <N>
+task_name: <TASK_NAME>
+error: <what went wrong>
+partial_files_changed:
+  - <any partially modified files>
+```
+
+---
+
 ## Specific Techniques
 
 ### Approval Gate Wording
@@ -168,6 +326,34 @@ Please answer each before I continue to planning.
 
 Update the architecture section with the developer's answers, then proceed to planning.
 
+### Reading CAPY_RESULT Blocks
+
+After each subagent completes, extract the `## CAPY_RESULT` block from its response and parse each `key: value` line. Use these values to populate the approval gate summary — do not re-read spec files in the main thread to compose summaries. If the result block is missing entirely, treat it as `status: error` and follow the Subagent Failure Protocol.
+
+### Subagent Failure Protocol
+
+If a subagent returns `status: error` or no `## CAPY_RESULT` block:
+
+1. Do not proceed to the next phase.
+2. Report the failure to the developer:
+
+```
+Phase [N] subagent failed.
+
+Error: <error from result block, or "Subagent returned no result block">
+Partial files changed: <list if any, or "none">
+
+Options:
+  🔁 Retry — I will re-spawn the subagent with the same prompt
+  ✏️  Adjust — describe what to change before retrying
+  🛑 Stop — end the pipeline here
+```
+
+3. On retry: re-spawn the same subagent with the identical prompt. Do not modify the prompt unless the developer explicitly provides adjustments.
+4. On stop: follow the Stopping Mid-Pipeline protocol.
+
+Never attempt to complete phase work in the main thread after a subagent failure.
+
 ### Stopping Mid-Pipeline
 
 If the developer stops the pipeline at any point, summarize what was completed:
@@ -190,6 +376,8 @@ To resume: "continue from Task 4" or run the builder skill directly.
 | "I'll write the architecture myself instead of invoking the architect skill" | You are the orchestrator. You coordinate. You do not produce artifacts directly. |
 | "The developer said 'looks good', I'll take that as approval" | If it is not explicit approval, ask for explicit approval. "Looks good" is ambiguous. |
 | "I'll implement two tasks between commit prompts to save time" | One task per commit. Always. |
+| "I'll do the writer work in the main thread — it's faster" | The subagent isolation is the point. Always spawn. |
+| "The CAPY_RESULT block is missing but I can see what the subagent did — I'll continue" | A missing result block means an unknown state. Follow the failure protocol. |
 
 ## Red Flags
 
@@ -198,6 +386,10 @@ To resume: "continue from Task 4" or run the builder skill directly.
 - Assuming `[DECISION]` items are resolved without explicit developer input
 - Skipping the commit reminder between build tasks
 - Continuing after the developer stops the pipeline without being asked to resume
+- Performing phase work (spec writing, architecture, planning, implementation) in the main conversation thread instead of spawning a subagent
+- Proceeding after a subagent returns `status: error` or no `## CAPY_RESULT` block
+- Running builder subagents in background mode or in parallel
+- Composing approval gate summaries from your own reading of spec files instead of from the subagent's CAPY_RESULT block
 
 ## Verification
 
@@ -206,3 +398,6 @@ To resume: "continue from Task 4" or run the builder skill directly.
 - [ ] Task list exists at `specs/<feature-name>-tasks.md` with developer approval before starting implementation
 - [ ] Each build task was followed by a commit reminder before the next task was started
 - [ ] No spec content, architecture decisions, or code was produced directly by the orchestrator
+- [ ] Each phase was executed by a dedicated subagent via the Agent tool, not in the main thread
+- [ ] Each subagent returned a `## CAPY_RESULT` block with `status: success` before the approval gate was shown
+- [ ] Builder subagents were spawned sequentially, not in parallel or in background
