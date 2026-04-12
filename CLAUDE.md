@@ -40,7 +40,7 @@ Available commands (when this repo is active):
 
 ```
 skills/          13 skill files — executable engineering processes
-agents/          3 agent personas — specialized roles for sessions
+agents/          7 agent personas — specialized roles for sessions
 references/      6 reference checklists — quick lookups
 docs/            Getting started and skill anatomy guides
 hooks/           Session lifecycle hooks (future use)

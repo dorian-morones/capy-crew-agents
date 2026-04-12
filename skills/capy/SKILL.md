@@ -31,6 +31,7 @@ When the capy skill is active, adopt the orchestrator role for the entire sessio
 
 1. Receive the feature request from the developer.
 2. Spawn a writer subagent using the Agent tool:
+   - `subagent_type`: "capy-crew-agents:writer"
    - `description`: "Write feature spec: [feature name]"
    - `prompt`: Writer Subagent Prompt (see Subagent Prompt Templates)
    - `run_in_background`: false
@@ -66,6 +67,7 @@ If changes are requested, re-run the writer skill with the feedback. Repeat unti
 ### Phase 2 — Architecture
 
 5. Once the spec is approved, spawn an architect subagent using the Agent tool:
+   - `subagent_type`: "capy-crew-agents:architect"
    - `description`: "Write architecture for: specs/[feature-name].md"
    - `prompt`: Architect Subagent Prompt (see Subagent Prompt Templates)
    - `run_in_background`: false
@@ -84,6 +86,7 @@ If changes are requested, re-run the writer skill with the feedback. Repeat unti
 ### Phase 3 — Task List
 
 8. Spawn a planner subagent using the Agent tool:
+   - `subagent_type`: "capy-crew-agents:planner"
    - `description`: "Plan tasks for: specs/[feature-name].md"
    - `prompt`: Planner Subagent Prompt (see Subagent Prompt Templates)
    - `run_in_background`: false
@@ -119,6 +122,7 @@ If changes are requested, re-run the planner skill with the feedback. Repeat unt
 
 For each task:
 - Spawn a builder subagent using the Agent tool:
+  - `subagent_type`: "capy-crew-agents:builder"
   - `description`: "Implement Task [N]: [task name]"
   - `prompt`: Builder Subagent Prompt (see Subagent Prompt Templates), with task number and name filled in
   - `run_in_background`: false
@@ -170,16 +174,15 @@ Each subagent receives a self-contained prompt — it starts with no context fro
 
 ### Writer Subagent Prompt
 
-```
-You are a spec writer running as a subagent in the capy SDD pipeline.
+Spawn with `subagent_type: "capy-crew-agents:writer"`.
 
+```
 Feature request:
 <FEATURE_REQUEST>
 
-Instructions:
-1. Use the Skill tool: Skill({ skill: "capy-crew-agents:writer", args: "<FEATURE_REQUEST>" })
-2. The writer skill will explore the codebase, write the spec, and report its output.
-3. End your response with:
+Use the Skill tool to run the writer skill: Skill({ skill: "capy-crew-agents:writer", args: "<FEATURE_REQUEST>" })
+
+After the spec is complete, end your response with:
 
 ## CAPY_RESULT
 status: success
@@ -201,15 +204,14 @@ error: <what went wrong>
 
 ### Architect Subagent Prompt
 
-```
-You are a technical architect running as a subagent in the capy SDD pipeline.
+Spawn with `subagent_type: "capy-crew-agents:architect"`.
 
+```
 Spec file: specs/<FEATURE_NAME>.md
 
-Instructions:
-1. Use the Skill tool: Skill({ skill: "capy-crew-agents:architect", args: "specs/<FEATURE_NAME>.md" })
-2. The architect skill will read the spec, make architectural decisions, and append the Architecture section.
-3. End your response with:
+Use the Skill tool to run the architect skill: Skill({ skill: "capy-crew-agents:architect", args: "specs/<FEATURE_NAME>.md" })
+
+After the architecture section is appended, end your response with:
 
 ## CAPY_RESULT
 status: success
@@ -231,15 +233,14 @@ error: <what went wrong>
 
 ### Planner Subagent Prompt
 
-```
-You are a task planner running as a subagent in the capy SDD pipeline.
+Spawn with `subagent_type: "capy-crew-agents:planner"`.
 
+```
 Spec file: specs/<FEATURE_NAME>.md
 
-Instructions:
-1. Use the Skill tool: Skill({ skill: "capy-crew-agents:planner", args: "specs/<FEATURE_NAME>.md" })
-2. The planner skill will read the spec and architecture, generate the task list, and save it.
-3. End your response with:
+Use the Skill tool to run the planner skill: Skill({ skill: "capy-crew-agents:planner", args: "specs/<FEATURE_NAME>.md" })
+
+After the task list is saved, end your response with:
 
 ## CAPY_RESULT
 status: success
@@ -262,17 +263,16 @@ error: <what went wrong>
 
 ### Builder Subagent Prompt
 
-```
-You are a builder running as a subagent in the capy SDD pipeline.
+Spawn with `subagent_type: "capy-crew-agents:builder"`.
 
+```
 Spec file: specs/<FEATURE_NAME>.md
 Task list: specs/<FEATURE_NAME>-tasks.md
 Task to implement: Task <N> — <TASK_NAME>
 
-Instructions:
-1. Use the Skill tool: Skill({ skill: "capy-crew-agents:builder", args: "Implement Task <N>: <TASK_NAME> from specs/<FEATURE_NAME>.md and specs/<FEATURE_NAME>-tasks.md" })
-2. The builder skill will read the spec, read the task, implement it, and report. Do not implement any other tasks.
-3. End your response with:
+Use the Skill tool to run the builder skill: Skill({ skill: "capy-crew-agents:builder", args: "Implement Task <N>: <TASK_NAME> from specs/<FEATURE_NAME>.md and specs/<FEATURE_NAME>-tasks.md" })
+
+Implement only Task <N>. After it is complete, end your response with:
 
 ## CAPY_RESULT
 status: success
