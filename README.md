@@ -10,7 +10,7 @@ Code written before requirements are clear is the leading cause of rewrites. **C
 
 | Type | Count | How it works |
 |------|-------|--------------|
-| **Skills** | 21 | Load automatically when the conversation context matches their trigger — no invocation needed. Can also be called by name in natural language. |
+| **Skills** | 22 | Load automatically when the conversation context matches their trigger — no invocation needed. Can also be called by name in natural language. |
 | **Reference checklists** | 6 | Static quick-lookup docs for Supabase, Clerk, deployment, testing, security, and performance |
 
 Skills are not commands you run. Each skill has a `description` field that starts with "Use when...". When Claude detects the trigger condition in the conversation, the skill loads silently. You can also invoke any skill explicitly by naming it:
@@ -37,7 +37,7 @@ claude plugin marketplace add dorian-morones/capy-crew-agents
 claude plugin install capy-crew-agents
 ```
 
-After this, all 21 skills are active in every Claude Code session — no project-level `CLAUDE.md` changes required.
+After this, all 22 skills are active in every Claude Code session — no project-level `CLAUDE.md` changes required.
 
 **3. Update when new versions ship:**
 
@@ -56,7 +56,26 @@ claude plugin update capy-crew-agents
 "use capy to build the CSV export feature end to end"
 ```
 
-The `capy` skill orchestrates the full four-phase pipeline. It runs writer → architect → planner → builder in sequence, presents summaries at each phase, and enforces approval gates before proceeding. You respond to prompts; capy handles coordination.
+The `capy` skill orchestrates the full pipeline: **spec → clarify → architecture → tasks → builder per task**. It runs writer → architect → planner in sequence, then spawns one builder per task.
+
+The builder is itself an orchestrator. Inside it, a **coder** writes the task and a **reviewer** reviews the uncommitted diff, looping fix rounds until the review is clean:
+
+```
+capy
+ ├─ writer      → specs/<feature>.md
+ ├─ architect   → ## Architecture appended
+ ├─ planner     → specs/<feature>-tasks.md
+ └─ builder (one per task)
+      ├─ coder     → writes the code
+      ├─ reviewer  → reviews the uncommitted diff
+      ├─ coder     → fix mode, applies findings
+      └─ reviewer  → re-reviews  ⟳ max 2 fix rounds
+           → returns clean → your commit gate
+```
+
+The coder is forbidden from committing, so the reviewer reads the working tree — review lands between writing and committing. A task reaches your commit gate only once the review is clean; if findings survive two fix rounds, the builder returns them to capy and capy asks you what to do.
+
+You respond to prompts; capy handles coordination. Spec open questions and `[question]` findings are always yours to answer — no agent guesses on your behalf.
 
 ### Option B — One phase at a time
 
@@ -76,11 +95,17 @@ Review the `## Architecture` section. Resolve any `[DECISION]` items. Then:
 Review `specs/csv-export-tasks.md`. Approve the task list. Then:
 
 ```
-"use the builder skill to implement Task 1 from specs/csv-export-tasks.md"
+"use the builder skill to deliver Task 1 from specs/csv-export-tasks.md"
 ```
-Review the diff. Commit. Repeat for each task.
+The builder writes it, reviews it, and fixes what the review finds. Review the diff yourself, commit, and repeat for each task.
 
-The builder never commits. You always review and commit each task before moving to the next.
+To skip the review loop and just have the code written, use the coder skill instead:
+
+```
+"use the coder skill to implement Task 1 from specs/csv-export-tasks.md"
+```
+
+Neither one commits. You always review and commit each task before moving to the next.
 
 ---
 
@@ -90,11 +115,12 @@ The builder never commits. You always review and commit each task before moving 
 
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
-| [capy](./skills/capy/SKILL.md) | Orchestrating the full SDD pipeline end to end | Coordinates writer → architect → planner → builder with developer approval gates between phases |
+| [capy](./skills/capy/SKILL.md) | Orchestrating the full SDD pipeline end to end | Coordinates writer → architect → planner → builder-per-task, with developer approval gates between phases |
 | [writer](./skills/writer/SKILL.md) | Writing a formal spec before any code is touched | Explores the codebase, writes `specs/<feature>.md` covering user story, acceptance criteria, API surface, data model, and open questions |
 | [architect](./skills/architect/SKILL.md) | An approved spec needs a technical architecture | Appends `## Architecture` to the spec: DB schema with RLS, route contracts, TypeScript types, component decisions, and dependency order |
 | [planner](./skills/planner/SKILL.md) | Architecture needs to become an ordered task list | Writes `specs/<feature>-tasks.md` — one task per layer, each ≤2h and independently committable |
-| [builder](./skills/builder/SKILL.md) | Implementing a single task from the task list | Reads spec + task list first, matches existing patterns, implements exactly the task, reports what changed, never commits |
+| [builder](./skills/builder/SKILL.md) | Delivering one task written, reviewed, and fixed | Spawns a coder to write it and a reviewer to review the uncommitted diff, loops fix rounds until clean (max 2), returns to capy. Writes no code itself |
+| [coder](./skills/coder/SKILL.md) | Writing the code for one task, or applying review findings in fix mode | Reads spec + task list + every file it will touch first, matches existing patterns, implements exactly the task. Never commits |
 
 ### Review & Quality
 
