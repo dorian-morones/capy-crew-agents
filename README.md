@@ -1,6 +1,6 @@
 # Capy Crew
 
-![Capy Crew](./banner.png)
+![Capy Crew](./banner.jpeg)
 
 **A crew of specialist AI agents that define what to build, then build it — and never guess on your behalf.**
 
