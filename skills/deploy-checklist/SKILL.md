@@ -1,11 +1,11 @@
 ---
-name: vercel-render-deploy
-description: Use when deploying actify-web to Vercel or actify-api to Render to run the pre-deploy checklist and avoid production incidents.
+name: deploy-checklist
+description: Use when deploying a web app or API to production to run a pre-deploy checklist — env vars, key alignment, build verification, and smoke tests — and avoid predictable production incidents.
 ---
 
 ## Overview
 
-Deployments fail in predictable ways: wrong environment variables, missing secrets, mismatched keys between services, or a build that works locally but breaks in CI. This skill encodes the specific pre-deploy checklist for the actify stack — Next.js frontend on Vercel and Bun/Elysia API on Render — including the common failure modes that have caused production incidents before.
+Deployments fail in predictable ways: wrong environment variables, missing secrets, mismatched keys between services, or a build that works locally but breaks in CI. This skill encodes a pre-deploy checklist and the failure modes behind it. The worked example is a Next.js frontend on Vercel and a Bun/Elysia API on Render; substitute your own hosts and services — the failure modes are the same everywhere. Take the project's real domains, services, and env var names from `.capy/conventions.md` or the project's deploy config, and never assume the placeholders below.
 
 ## When to Use
 
@@ -35,17 +35,17 @@ Deployments fail in predictable ways: wrong environment variables, missing secre
 
 ## Specific Techniques
 
-### actify-web (Vercel) Pre-Deploy Checklist
+### <frontend-app> (Vercel) Pre-Deploy Checklist
 
 ```markdown
 Environment variables (set in Vercel dashboard per environment):
 
 Production:
-- [ ] NEXT_PUBLIC_API_URL=https://api.useactify.com        ← must have https://
+- [ ] NEXT_PUBLIC_API_URL=https://api.<your-domain>        ← must have https://
 - [ ] NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...         ← live key, not test
 - [ ] CLERK_SECRET_KEY=sk_live_...                          ← live key, not test
 - [ ] NEXT_PUBLIC_POSTHOG_KEY=phc_...
-- [ ] NEXT_PUBLIC_POSTHOG_HOST=https://app.useactify.com/ingest  ← proxy, not direct
+- [ ] NEXT_PUBLIC_POSTHOG_HOST=https://app.<your-domain>/ingest  ← proxy, not direct
 
 Build settings:
 - [ ] Framework: Next.js (auto-detected)
@@ -54,11 +54,11 @@ Build settings:
 - [ ] Install command: pnpm install
 
 Domain:
-- [ ] app.useactify.com → Production deployment
+- [ ] app.<your-domain> → Production deployment
 - [ ] CNAME or A record pointing to Vercel
 ```
 
-### actify-api (Render) Pre-Deploy Checklist
+### <api-service> (Render) Pre-Deploy Checklist
 
 ```markdown
 Environment variables (set in Render dashboard):
@@ -67,7 +67,7 @@ Environment variables (set in Render dashboard):
 - [ ] SUPABASE_URL=https://[project].supabase.co
 - [ ] SUPABASE_SERVICE_ROLE_KEY=...
 - [ ] DATABASE_URL=postgres://...
-- [ ] CORS_ORIGIN=http://localhost:3000,https://app.useactify.com
+- [ ] CORS_ORIGIN=http://localhost:3000,https://app.<your-domain>
 - [ ] POSTHOG_API_KEY=phc_...
 - [ ] PORT=3001 (or whatever Render assigns)
 
@@ -78,7 +78,7 @@ Service settings:
 - [ ] Plan: Paid tier (required for agent setInterval loops)
 
 Domain:
-- [ ] api.useactify.com → Render service
+- [ ] api.<your-domain> → Render service
 - [ ] Custom domain configured in Render dashboard
 ```
 
@@ -101,9 +101,9 @@ pk_live_* → sk_live_*     ← Production
 CORS_ORIGIN must include every origin that talks to the API:
 
 Development: http://localhost:3000
-Production:  https://app.useactify.com
+Production:  https://app.<your-domain>
 
-CORS_ORIGIN=http://localhost:3000,https://app.useactify.com
+CORS_ORIGIN=http://localhost:3000,https://app.<your-domain>
 ```
 
 If you add a new frontend domain (staging, preview), add it to `CORS_ORIGIN` in Render before it goes live.
@@ -120,7 +120,7 @@ rewrites: async () => [
 ]
 
 // .env — must use proxy, not direct PostHog URL
-NEXT_PUBLIC_POSTHOG_HOST=https://app.useactify.com/ingest   ✅
+NEXT_PUBLIC_POSTHOG_HOST=https://app.<your-domain>/ingest   ✅
 NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com           ❌ blocked by adblockers
 ```
 
@@ -131,8 +131,8 @@ And `/ingest(.*)` must be in `isPublicRoute` in `src/proxy.ts`.
 Run these checks within 5 minutes of any production deploy:
 
 ```markdown
-- [ ] GET https://api.useactify.com/ → 200 OK
-- [ ] GET https://app.useactify.com/ → renders login page
+- [ ] GET https://api.<your-domain>/ → 200 OK
+- [ ] GET https://app.<your-domain>/ → renders login page
 - [ ] Sign in with a real account → lands on dashboard
 - [ ] Main data loads (feedback list, roadmap, etc.)
 - [ ] No 401/500 errors in Render logs
@@ -165,7 +165,7 @@ Agents use `setInterval` for polling loops. Render's free tier spins down after 
 
 ## Verification
 
-**actify-web (Vercel):**
+**<frontend-app> (Vercel):**
 - [ ] All env vars set for the target environment in Vercel dashboard
 - [ ] `NEXT_PUBLIC_API_URL` starts with `https://`
 - [ ] Clerk keys are the correct tier (test vs. live) and match the backend
@@ -173,7 +173,7 @@ Agents use `setInterval` for polling loops. Render's free tier spins down after 
 - [ ] `pnpm build` passes locally before pushing
 - [ ] Smoke test passes after deploy
 
-**actify-api (Render):**
+**<api-service> (Render):**
 - [ ] All env vars set in Render dashboard
 - [ ] `CLERK_SECRET_KEY` matches the frontend's publishable key tier
 - [ ] `CORS_ORIGIN` includes all frontend origins

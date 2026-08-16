@@ -5,7 +5,7 @@ description: Use when committing, branching, or merging to keep a clean, readabl
 
 ## Overview
 
-Git history is the primary record of why the codebase is the way it is. A well-maintained history makes rollbacks safe, code review fast, and blame useful. This skill encodes the workflow conventions for the actify repos — trunk-based development, conventional commits, and atomic commit discipline — and explains why each convention exists.
+Git history is the primary record of why the codebase is the way it is. A well-maintained history makes rollbacks safe, code review fast, and blame useful. This skill encodes the workflow conventions for a trunk-based repo — trunk-based development, conventional commits, and atomic commit discipline — and explains why each convention exists.
 
 ## When to Use
 

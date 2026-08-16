@@ -1,6 +1,6 @@
 # Clerk Auth Patterns
 
-Reference for Clerk authentication in the actify stack — JWT validation, middleware, webhooks, and key management.
+Reference for Clerk authentication in this stack — JWT validation, middleware, webhooks, and key management.
 
 ---
 
@@ -17,7 +17,7 @@ Clerk has separate test and live environments. They are completely isolated — 
 
 ---
 
-## Next.js Middleware (actify-web)
+## Next.js Middleware (<frontend-app>)
 
 Clerk middleware lives in `src/proxy.ts` (not `middleware.ts` — using both at once causes a build error).
 
@@ -46,7 +46,7 @@ export default clerkMiddleware(async (auth, req) => {
 
 ---
 
-## API Auth Middleware (actify-api)
+## API Auth Middleware (<api-service>)
 
 Two middleware options:
 

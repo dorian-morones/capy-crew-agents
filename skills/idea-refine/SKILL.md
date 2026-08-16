@@ -18,7 +18,7 @@ Idea refinement is the process of interrogating a vague concept until it becomes
 - Two people on the same team have different mental models of what "X" means
 
 **Skip this skill when:**
-- The idea is already specific enough to write a feature spec (go straight to `feature-spec`)
+- The idea is already specific enough to write a feature spec (go straight to the `writer` skill)
 - It's a pure technical task with no ambiguity (e.g. "add an index to this column")
 
 ## Core Process
@@ -40,7 +40,7 @@ Idea refinement is the process of interrogating a vague concept until it becomes
 
 6. **Write a one-paragraph description** — Actor + trigger + outcome + constraints
 
-7. **Hand off to `feature-spec`** — The refined idea becomes the input to spec writing
+7. **Hand off to `writer`** — The refined idea becomes the input to spec writing
 
 ## Specific Techniques
 
@@ -104,4 +104,4 @@ Out of scope (v1):
 - [ ] Out-of-scope list written
 - [ ] Five hard questions answered
 - [ ] Dependencies identified
-- [ ] Ready to hand off to `feature-spec`
+- [ ] Ready to hand off to `writer`

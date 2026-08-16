@@ -39,6 +39,13 @@ The planner reads the dependency order from the architecture section and uses it
 
 ## Specific Techniques
 
+### The Task Templates Are an Example, Not a Contract
+
+The templates below describe a six-layer web feature (DB → types → API → hook → UI → tests) using a Postgres/JWT example stack. Use the *shape* — one task per layer, ordered by dependency, each independently committable — and substitute the layers this project actually has. A CLI tool, a data pipeline, and a mobile app all decompose differently.
+
+Read `.capy/conventions.md` for the project's real layout, layer boundaries, and verification commands before writing the task list.
+
+
 ### Task List Template
 
 ```markdown
@@ -99,7 +106,7 @@ The planner reads the dependency order from the architecture section and uses it
 **What to build:**
 - `GET /<resource>` — returns list scoped to `user.account_id`
 - `POST /<resource>` — validates body schema, inserts with `account_id` from JWT
-- Register route in `src/index.ts` after `csrfGuard`
+- Register the route where the project registers routes, behind the project's auth middleware
 - Add Swagger tag
 
 **Done when:**
@@ -142,7 +149,7 @@ The planner reads the dependency order from the architecture section and uses it
 - Page at the route specified in the architecture — `"use client"`, fetches on mount, renders list
 - Extracted component if over 50 lines or reused
 - Loading state, error state, empty state
-- Toast on success/error using `sonner`
+- Success/error feedback using the project's notification pattern
 
 **Done when:**
 - Page renders list from API
@@ -207,6 +214,29 @@ This task should be split into:
 - Task 5a: ResourceForm component
 - Task 5b: ResourcePage that uses ResourceForm
 ```
+
+### Estimating Scope
+
+| Signals | Likely scope |
+|---------|-------------|
+| 1–2 layers touched, familiar code | 1–3 tasks, half a day |
+| 3–4 layers, one new pattern | 4–7 tasks, 1–2 days |
+| New domain, data model changes | 8+ tasks, plan carefully |
+
+If you cannot enumerate the tasks, the feature is not understood well enough to start coding. Go back to the spec.
+
+### One Concern Per Task
+
+Never mix concerns in a single task — each must be independently understandable and revertable:
+
+- ❌ Migration + route + frontend component as one task
+- ✅ Migration task → route task → component task
+
+| Size | Description | Verdict |
+|------|-------------|---------|
+| Too small | A single variable rename | Not worth its own task |
+| Right | One route, one component, one migration | ~1–2 hours |
+| Too large | "The entire feedback feature" | Split it |
 
 ## Common Rationalizations
 

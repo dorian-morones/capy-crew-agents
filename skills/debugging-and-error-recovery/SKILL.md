@@ -69,7 +69,7 @@ When the bug is in a complex flow, binary-search for it:
 Full flow: Browser → Next.js → API → Supabase
 
 Step 1: Does the API return the right data?
-  curl -H "Authorization: Bearer $TOKEN" https://api.useactify.com/feedback
+  curl -H "Authorization: Bearer $TOKEN" https://api.<your-domain>/feedback
   → Yes: bug is in the frontend
   → No: continue to Step 2
 

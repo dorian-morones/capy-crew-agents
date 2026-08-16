@@ -28,6 +28,8 @@ The coder is spawned by the builder, which owns the build → review → fix loo
 
 ## Core Process
 
+0. **Read `.capy/conventions.md`** — If it exists, it defines what correct looks like in this codebase. If it does not, derive conventions from neighbouring code in step 4 and say so in your report.
+
 1. **Read the spec** — Find and read `specs/<feature-name>.md` in full including the architecture section.
 
 2. **Read the task list** — Find `specs/<feature-name>-tasks.md` and identify the specific task to implement. Read its "What to build" and "Done when" conditions carefully.
@@ -38,9 +40,7 @@ The coder is spawned by the builder, which owns the build → review → fix loo
 
 5. **Implement the task** — Build exactly what the task specifies. If you notice something unrelated that could be improved, note it in the report and do not change it.
 
-6. **Run a build check** — After implementing:
-   - API: run `bun run src/index.ts` or equivalent to check for TypeScript/runtime errors
-   - Frontend: run `pnpm tsc --noEmit` or `pnpm build` for type errors
+6. **Run the build check** — Run the verification commands from `.capy/conventions.md` (typecheck and build at minimum). If there is no conventions file, take them from the project's `package.json` scripts, `Makefile`, or CI config.
 
 7. **Report** — State exactly what was built, what files changed, whether the done conditions are met, the suggested commit message, and what the next task is.
 
@@ -59,7 +59,7 @@ In fix mode, the review is the task list. Each `[blocker]` and `[concern]` is on
 3. **Read the current state of every flagged file, in full** — the working tree has changed since the reviewer read it, especially on a second fix round. Never edit from the findings alone.
 4. **Apply the fixes in severity order** — blockers first, then concerns. Apply the stated fix unless it is wrong; if it is wrong, apply the correct one and record the deviation.
 5. **Re-verify the done conditions** — a fix that resolves a finding but breaks a done condition has traded one blocker for another.
-6. **Run the build check** — a fix round that leaves the build broken is worse than no fix at all.
+6. **Run the build check** — the project's own verification commands. A fix round that leaves the build broken is worse than no fix at all.
 7. **Report the disposition of every finding.**
 8. **Do not commit.**
 
@@ -79,35 +79,29 @@ A finding that is silently dropped will be raised again on the next review round
 
 **Conflicting findings.** When two findings cannot both be satisfied, resolve the higher-severity one, leave the other unaddressed, and report the conflict. Do not invent a compromise that satisfies neither.
 
-### Stack Conventions (Non-Negotiable)
+### Project Conventions
 
-**API Routes (Elysia):**
-- Every POST/PUT/PATCH must have an Elysia body schema: `body: t.Object({ field: t.String() })`
-- `account_id` always comes from `user.account_id` (from the JWT) — never from `body.account_id`
-- All errors use `ApiError`, `NotFoundError`, or `UnauthorizedError` — never throw a raw `Error`
-- New routes registered in `src/index.ts` after `csrfGuard`
-- Webhook routes go before `csrfGuard`
-- Every route has Swagger detail: `detail: { tags: ["TagName"], summary: "..." }`
+Correctness is defined by this codebase, not by framework documentation. Before writing code:
 
-**Database (Supabase):**
-- Migrations named: `YYYYMMDDHHMMSS_description.sql`
-- Every new table: `ALTER TABLE <name> ENABLE ROW LEVEL SECURITY`
-- RLS policies use: `(auth.jwt() ->> 'account_id')::uuid = account_id`
-- INSERT policies use `WITH CHECK`, SELECT/UPDATE/DELETE use `USING`
-- Index on `account_id` for every new table
+1. **Read `.capy/conventions.md`** if it exists. It is the authority on stack, layout, security invariants, naming, and the verification commands to run. Follow it over your own preferences and over any general best practice.
+2. **If it does not exist**, derive conventions from the code itself: open two or three files in the same layer as the one you are about to touch and match the repeated pattern — error handling, input validation, how auth context is obtained, naming, imports, file structure. Note in your report that no conventions file was found, so the developer can run the `conventions` skill.
 
-**Frontend (Next.js):**
-- `"use client"` only when the component needs hooks, event handlers, or browser APIs
-- Data fetching in hooks under `src/hooks/` — never inline in components
-- All styles via Tailwind utility classes — no inline styles, no CSS modules
-- Toast notifications: `import { toast } from "sonner"`
-- Icons: `lucide-react` first choice
-- Components over 50 lines or used in more than one place extracted to `src/components/`
+Never introduce a pattern the codebase does not already use. A task is not an opportunity to upgrade the project's idioms — if the existing pattern is wrong, note it and leave it.
 
-**Auth (Clerk):**
-- New public routes added to `isPublicRoute` in `src/proxy.ts`
-- Protected routes use `auth` middleware
-- Onboarding routes use `authLite`
+### Security Invariants Are Non-Negotiable
+
+Whatever `.capy/conventions.md` records under Security Invariants, treat as a hard constraint — most often a tenancy rule (which identity field scopes queries, and where it comes from) and a set of bypasses (admin or service-role clients that skip access control).
+
+Two rules hold in every codebase regardless of stack:
+
+- **Identity comes from the verified session or token, never from request input.** A tenant/account/user identifier read out of a request body or query parameter is an access-control hole even when the endpoint is authenticated.
+- **Never hardcode secrets, and never log credentials, tokens, or personal data.**
+
+If the conventions file is missing its security section, do not guess the tenancy rule from one example. Implement what the task specifies, and flag the gap in your report.
+
+### Verification
+
+Run the verification commands from `.capy/conventions.md`. If there is no conventions file, find them in `package.json` scripts, `Makefile`, or CI config — typecheck and build at minimum. Do not report success on a broken build, and do not invent a command that is not in the project.
 
 ### Build Report Template
 
@@ -172,10 +166,10 @@ A finding that is silently dropped will be raised again on the next review round
 ## Red Flags
 
 - Adding features or refactoring code not mentioned in the task
-- Using `body.account_id` instead of `user.account_id`
-- Using `supabaseAdmin` in a route that has `auth` middleware
-- Adding `"use client"` without a specific reason (hooks, event handlers, browser APIs)
-- Using inline styles or non-Tailwind CSS
+- Taking a tenant, account, or user identifier from request input instead of the verified session or token
+- Using an admin or service-role client in a path that already enforces user-scoped access
+- Introducing a library, pattern, or idiom the codebase does not already use
+- Ignoring `.capy/conventions.md` in favour of framework defaults or personal preference
 - Hardcoding secrets or API keys
 - Logging sensitive data (tokens, passwords, PII)
 - Committing instead of reporting
@@ -189,9 +183,10 @@ A finding that is silently dropped will be raised again on the next review round
 
 - [ ] The spec was read in full before writing any code
 - [ ] Every file modified was read before being edited
+- [ ] `.capy/conventions.md` was read and followed, or its absence was reported
 - [ ] Existing patterns were matched (naming, imports, error handling)
 - [ ] Only what the task describes was implemented — nothing more
-- [ ] Build check passed with no TypeScript or runtime errors
+- [ ] The project's own verification commands were run and passed
 - [ ] The report lists every file changed and all done conditions
 - [ ] Commit was not made
 - [ ] Fix mode only: every `[blocker]` and `[concern]` is addressed or listed as unaddressed with a concrete reason

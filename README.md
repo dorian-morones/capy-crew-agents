@@ -10,7 +10,8 @@ Code written before requirements are clear is the leading cause of rewrites. **C
 
 | Type | Count | How it works |
 |------|-------|--------------|
-| **Skills** | 22 | Load automatically when the conversation context matches their trigger — no invocation needed. Can also be called by name in natural language. |
+| **Skills** | 17 | Load automatically when the conversation context matches their trigger — no invocation needed. Can also be called by name in natural language. |
+| **Slash commands** | 7 | `/capy`, `/conventions`, `/spec`, `/plan`, `/build`, `/review`, `/ship` |
 | **Reference checklists** | 6 | Static quick-lookup docs for Supabase, Clerk, deployment, testing, security, and performance |
 
 Skills are not commands you run. Each skill has a `description` field that starts with "Use when...". When Claude detects the trigger condition in the conversation, the skill loads silently. You can also invoke any skill explicitly by naming it:
@@ -37,7 +38,7 @@ claude plugin marketplace add dorian-morones/capy-crew-agents
 claude plugin install capy-crew-agents
 ```
 
-After this, all 22 skills are active in every Claude Code session — no project-level `CLAUDE.md` changes required.
+After this, all 17 skills and 7 slash commands are active in every Claude Code session — no project-level `CLAUDE.md` changes required.
 
 **3. Update when new versions ship:**
 
@@ -45,6 +46,22 @@ After this, all 22 skills are active in every Claude Code session — no project
 claude plugin marketplace update dorian-morones/capy-crew-agents
 claude plugin update capy-crew-agents
 ```
+
+---
+
+## First: Teach It Your Stack
+
+Skills in this plugin are stack-agnostic. What "correct" means in *your* client's codebase lives in that project's `.capy/conventions.md` — stack, layout, security invariants, naming, and the exact commands to typecheck and build.
+
+Run this once per project:
+
+```
+/conventions
+```
+
+It reads the codebase, writes `.capy/conventions.md` from a template, and shows it to you for confirmation. Every rule cites a real file in your repo. After that, every coder and reviewer in the pipeline reviews against *your* project's rules instead of guessing from framework defaults.
+
+Skip it and the pipeline infers patterns from neighbouring files — workable, but reviews get vaguer.
 
 ---
 
@@ -56,7 +73,7 @@ claude plugin update capy-crew-agents
 "use capy to build the CSV export feature end to end"
 ```
 
-The `capy` skill orchestrates the full pipeline: **spec → clarify → architecture → tasks → builder per task**. It runs writer → architect → planner in sequence, then spawns one builder per task.
+The `capy` skill orchestrates the full pipeline: **conventions → spec → clarify → architecture → tasks → builder per task**. It runs writer → architect → planner in sequence, then spawns one builder per task.
 
 The builder is itself an orchestrator. Inside it, a **coder** writes the task and a **reviewer** reviews the uncommitted diff, looping fix rounds until the review is clean:
 
@@ -95,7 +112,7 @@ Review the `## Architecture` section. Resolve any `[DECISION]` items. Then:
 Review `specs/csv-export-tasks.md`. Approve the task list. Then:
 
 ```
-"use the builder skill to deliver Task 1 from specs/csv-export-tasks.md"
+/build Task 1 from specs/csv-export-tasks.md
 ```
 The builder writes it, reviews it, and fixes what the review finds. Review the diff yourself, commit, and repeat for each task.
 
@@ -120,6 +137,7 @@ Neither one commits. You always review and commit each task before moving to the
 | [architect](./skills/architect/SKILL.md) | An approved spec needs a technical architecture | Appends `## Architecture` to the spec: DB schema with RLS, route contracts, TypeScript types, component decisions, and dependency order |
 | [planner](./skills/planner/SKILL.md) | Architecture needs to become an ordered task list | Writes `specs/<feature>-tasks.md` — one task per layer, each ≤2h and independently committable |
 | [builder](./skills/builder/SKILL.md) | Delivering one task written, reviewed, and fixed | Spawns a coder to write it and a reviewer to review the uncommitted diff, loops fix rounds until clean (max 2), returns to capy. Writes no code itself |
+| [conventions](./skills/conventions/SKILL.md) | Setting up capy in a codebase for the first time | Reads the stack, layout, security invariants, and verification commands out of the code and writes `.capy/conventions.md` — the file every other skill reviews against |
 | [coder](./skills/coder/SKILL.md) | Writing the code for one task, or applying review findings in fix mode | Reads spec + task list + every file it will touch first, matches existing patterns, implements exactly the task. Never commits |
 
 ### Review & Quality
@@ -127,22 +145,19 @@ Neither one commits. You always review and commit each task before moving to the
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
 | [reviewer](./skills/reviewer/SKILL.md) | Reviewing a PR or self-reviewing before merging | Five-pass review (correctness → security → maintainability → tests → style) with `[blocker]`/`[concern]`/`[nit]` tagging |
-| [security-auditor](./skills/security-auditor/SKILL.md) | Auditing auth flows, data access, or API routes | Checks account scoping, input validation, auth middleware, supabaseAdmin usage, webhook verification, and secret handling |
-| [code-test](./skills/code-test/SKILL.md) | Writing Playwright E2E tests or unit tests | Writes complete, independent tests using semantic selectors, asserting on visible behavior |
-| [code-review-and-quality](./skills/code-review-and-quality/SKILL.md) | Reviewing a PR or self-reviewing code before merging | Systematic review focused on correctness, security, and maintainability |
+| [security-auditor](./skills/security-auditor/SKILL.md) | Writing or auditing anything security-sensitive | Checks account scoping, input validation, auth middleware, supabaseAdmin usage, webhook verification, and secret handling |
+| [test-engineer](./skills/test-engineer/SKILL.md) | Writing E2E, integration, or unit tests | Writes complete, independent tests using semantic selectors, asserting on visible behavior |
 
 ### Define
 
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
 | [idea-refine](./skills/idea-refine/SKILL.md) | Idea is vague or underspecified | Asks structured questions to turn a vague need into a specific technical direction |
-| [feature-spec](./skills/feature-spec/SKILL.md) | Starting any non-trivial feature | Enforces formal spec structure — user story, testable acceptance criteria, API surface, data model |
 
 ### Plan
 
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
-| [planning-and-task-breakdown](./skills/planning-and-task-breakdown/SKILL.md) | Breaking a spec into executable tasks | Enforces vertical slice decomposition — one task per layer, each independently committable |
 
 ### Build
 
@@ -151,14 +166,11 @@ Neither one commits. You always review and commit each task before moving to the
 | [supabase-data-modeling](./skills/supabase-data-modeling/SKILL.md) | Adding tables, RLS policies, or writing migrations | Enforces migration naming, RLS policy templates, index conventions, and account-scoped queries |
 | [api-route-design](./skills/api-route-design/SKILL.md) | Creating or modifying Elysia routes | Enforces body schema validation, auth middleware patterns, error types, and Swagger documentation |
 | [nextjs-component-patterns](./skills/nextjs-component-patterns/SKILL.md) | Building Next.js pages or components | Guides server vs. client component decisions, data fetching patterns, and Tailwind conventions |
-| [incremental-implementation](./skills/incremental-implementation/SKILL.md) | Implementing any feature | Enforces thin vertical slices — each slice is tested, committed, and leaves the codebase working |
-| [security-hardening](./skills/security-hardening/SKILL.md) | Touching auth, data access, or API exposure | Checks account scoping, JWT validation, RLS enforcement, webhook signatures, and secret handling |
 
 ### Verify
 
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
-| [e2e-with-playwright](./skills/e2e-with-playwright/SKILL.md) | Writing Playwright E2E tests | Guides authenticated test setup, semantic selectors, and behavior-focused assertions |
 | [debugging-and-error-recovery](./skills/debugging-and-error-recovery/SKILL.md) | Stuck on a bug or unexpected behavior | Runs a hypothesis loop: form theory → find minimal reproduction → confirm or refute → fix root cause |
 
 ### Ship
@@ -166,7 +178,7 @@ Neither one commits. You always review and commit each task before moving to the
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
 | [git-workflow-and-versioning](./skills/git-workflow-and-versioning/SKILL.md) | Committing, branching, or preparing a PR | Enforces conventional commits, atomic discipline, and trunk-based branching |
-| [vercel-render-deploy](./skills/vercel-render-deploy/SKILL.md) | Deploying to Vercel or Render | Runs a pre-deploy checklist: env vars, build verification, auth key alignment, smoke tests |
+| [deploy-checklist](./skills/deploy-checklist/SKILL.md) | Deploying to production | Runs a pre-deploy checklist: env vars, build verification, auth key alignment, smoke tests |
 
 ---
 
