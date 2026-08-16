@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "capy-crew-agents",
-      "description": "Stack-agnostic Spec-Driven Development pipeline: writer (spec), architect, planner, and a per-task builder that pairs a coder with a reviewer so nothing is committed unreviewed. Orchestrated by capy.",
+      "description": "Two pipelines for shipping software with AI: discovery (interview -> brief -> PRD) defines what is worth building, capy (spec -> architecture -> tasks -> code) builds it. Every artifact is critiqued before you see it, and no agent answers a question that belongs to a human.",
       "source": {
         "source": "github",
         "repo": "dorian-morones/capy-crew-agents"

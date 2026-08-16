@@ -1,6 +1,6 @@
 ---
 name: idea-refine
-description: Use when an idea is vague, underspecified, or stated as a user need without a clear technical direction.
+description: Use when a single feature is already agreed to be worth building but lacks a technical shape — turning it into an actor, trigger, and outcome ready for a spec. For whether a product is worth building at all, use brief-writer instead.
 ---
 
 ## Overview
@@ -19,6 +19,7 @@ Idea refinement is the process of interrogating a vague concept until it becomes
 
 **Skip this skill when:**
 - The idea is already specific enough to write a feature spec (go straight to the `writer` skill)
+- The question is whether this is worth building at all, or who has the problem — that is product-tier work; use `brief-writer`, or `discovery` for the whole definition pipeline
 - It's a pure technical task with no ambiguity (e.g. "add an index to this column")
 
 ## Core Process
