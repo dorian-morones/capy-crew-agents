@@ -1,232 +1,233 @@
-# Capy Crew Agents
+# Capy Crew
 
-![capy-crew-agents](./banner.png)
+![Capy Crew](./banner.png)
 
-Code written before requirements are clear is the leading cause of rewrites. **Capy Crew Agents** is a Claude Code plugin that enforces Spec-Driven Development: every feature begins with a written, approved spec before a single line of code is generated. The entire workflow — spec writing, architecture, task planning, implementation, review, and testing — is encoded as skills that load automatically when needed.
+**A crew of specialist AI agents that define what to build, then build it — and never guess on your behalf.**
+
+Two pipelines for Claude Code. One turns a vague idea into a client-ready PRD. The other turns that PRD into reviewed, committed code. Every artifact is critiqued by a different agent than the one that wrote it, and every question only you can answer comes back to you instead of being quietly invented.
+
+Built for freelance and solo devs who ship other people's software and carry the cost when the requirements were wrong.
 
 ---
 
-## What This Gives You
-
-| Type | Count | How it works |
-|------|-------|--------------|
-| **Skills** | 22 | Load automatically when the conversation context matches their trigger — no invocation needed. Can also be called by name in natural language. |
-| **Slash commands** | 12 | `/discovery`, `/interview-me`, `/brief`, `/prd`, `/critique`, `/capy`, `/conventions`, `/spec`, `/plan`, `/build`, `/review`, `/ship` |
-| **Reference checklists** | 6 | Static quick-lookup docs for Supabase, Clerk, deployment, testing, security, and performance |
-
-Skills are not commands you run. Each skill has a `description` field that starts with "Use when...". When Claude detects the trigger condition in the conversation, the skill loads silently. You can also invoke any skill explicitly by naming it:
+## The Two Pipelines
 
 ```
-"use the writer skill to write a spec for CSV export"
-"use capy to run the full pipeline for this feature"
-"use the reviewer skill on this diff"
+  ╭──────────────────────────── /discovery ───────────────────────────╮
+  │                                                                   │
+  │   interview  ──►   brief   ──►   PRD                              │   what & why
+  │   what only        is this       what it                          │
+  │   you know         worth it?     must do                          │
+  ╰────────────────────────────────┬──────────────────────────────────╯
+                                   │  you approve the handoff
+  ╭────────────────────────────────▼───────── /capy ───────────────────╮
+  │                                                                    │
+  │   spec  ──►  architecture  ──►  tasks  ──►  build each task        │   how
+  │                                              ↳ code → review → fix │
+  ╰────────────────────────────────────────────────────────────────────╯
 ```
+
+**`/discovery` decides what is worth building.** It interviews you one question at a time, writes a one-page brief arguing whether the problem is real, then a PRD your client can approve. A critic reviews each artifact against a fixed rubric before you see it.
+
+**`/capy` builds it.** Spec, architecture, ordered task list, then one builder per task. Each builder spawns a coder to write the code and a reviewer to review the *uncommitted* diff, looping fixes until it's clean.
+
+They're deliberately separate. Discovery hands off at the PRD; starting the build is always your decision.
+
+---
+
+## Why This Instead of Just Prompting
+
+| | What it means in practice |
+|---|---|
+| **Nothing is committed unreviewed** | The coder is structurally forbidden from committing, so review happens *between* writing and committing — not as a follow-up commit after a bug already shipped |
+| **No agent invents facts about you** | Claims about users cite an interview or carry an `[ASSUMED]` tag. Unknowns propagate as risks through every artifact, and the critic blocks if one silently disappears |
+| **Conventions come from your repo** | `/conventions` reads your actual codebase once. Reviews then judge against *your* patterns, not a framework's defaults — the difference between a useful reviewer and a merely confident one |
+| **Writers never grade themselves** | The agent that writes and the agent that judges are always different agents with separate context |
+| **Loops terminate** | Two fix rounds maximum, then it stops and hands you the findings. A problem surviving two rounds is usually missing information, and more rounds can't manufacture information |
+| **You hold every gate** | Spec open questions, `[DECISION]` items, `[question]` findings, and the commit itself all stop and wait for you |
 
 ---
 
 ## Install
 
-**1. Add the marketplace (one-time per machine):**
-
 ```bash
+# one-time per machine
 claude plugin marketplace add dorian-morones/capy-crew-agents
-```
 
-**2. Install the plugin:**
-
-```bash
+# install
 claude plugin install capy-crew-agents
 ```
 
-After this, all 22 skills and 12 slash commands are active in every Claude Code session — no project-level `CLAUDE.md` changes required.
-
-**3. Update when new versions ship:**
+All 22 skills and 12 commands are then active in every Claude Code session — no project-level `CLAUDE.md` changes needed.
 
 ```bash
+# update later
 claude plugin marketplace update dorian-morones/capy-crew-agents
 claude plugin update capy-crew-agents
 ```
 
----
-
-## Two Pipelines
-
-**`discovery`** decides what is worth building. **`capy`** builds it.
-
-```
-/discovery  →  interview  →  brief  →  PRD          ← what & why
-                                        │
-                                        ▼
-/capy       →  spec  →  architecture  →  tasks  →  build   ← how
-```
-
-Each phase's artifact is critiqued by a separate agent before you see it, and neither pipeline lets an agent answer a question that belongs to you — spec open questions, `[question]` findings, and anything a client alone knows all come back to you.
-
-Discovery hands off at the PRD. Starting the build is always your decision.
+> The plugin installs under the id `capy-crew-agents` — that's the package name, and it's also the prefix on every skill (`capy-crew-agents:writer`). Capy Crew is the crew; `capy-crew-agents` is how you install it.
 
 ---
 
-## First: Teach It Your Stack
+## Quickstart
 
-Skills in this plugin are stack-agnostic. What "correct" means in *your* client's codebase lives in that project's `.capy/conventions.md` — stack, layout, security invariants, naming, and the exact commands to typecheck and build.
-
-Run this once per project:
+**1. Teach it the codebase — once per project**
 
 ```
 /conventions
 ```
 
-It reads the codebase, writes `.capy/conventions.md` from a template, and shows it to you for confirmation. Every rule cites a real file in your repo. After that, every coder and reviewer in the pipeline reviews against *your* project's rules instead of guessing from framework defaults.
+Reads the stack, layout, security invariants, and build commands out of your code and writes `.capy/conventions.md`, citing a real file for every rule. Every coder and reviewer afterwards judges against that file.
 
-Skip it and the pipeline infers patterns from neighbouring files — workable, but reviews get vaguer.
+Skip it and the agents infer patterns from neighbouring files — workable, but reviews get vaguer.
+
+**2. Define the work**
+
+```
+/discovery a tool that generates client status updates from git history
+```
+
+You answer about six questions, one at a time, then approve a brief and a PRD.
+
+**3. Build it**
+
+```
+/capy build from product/prd.md
+```
+
+Approve the spec, resolve any architecture decisions, approve the task list. Each task then arrives already written and reviewed, waiting only for your commit.
+
+**Or run a single phase** — `/brief`, `/prd`, `/spec`, `/plan`, `/build`, `/review`. Nothing requires the full pipeline.
 
 ---
 
-## How to Run a Feature
+## The Crew
 
-### Option A — Full pipeline, hands-off
+Twelve personas. Each runs as an isolated subagent with no memory of your conversation, so nobody inherits anyone else's assumptions.
 
-```
-"use capy to build the CSV export feature end to end"
-```
+### Discovery pipeline
 
-The `capy` skill orchestrates the full pipeline: **conventions → spec → clarify → architecture → tasks → builder per task**. It runs writer → architect → planner in sequence, then spawns one builder per task.
+| Agent | Job | Never does |
+|-------|-----|-----------|
+| [interviewer](./agents/interviewer.md) | Extracts what only you or your client know — one question per turn, answers recorded verbatim | Asks what the repo could answer; fills a gap with a plausible invention |
+| [brief-writer](./agents/brief-writer.md) | One page: is this worth building? Problem, who has it, why now, a falsifiable success signal | Names a solution inside the problem; writes "users" where a role belongs |
+| [prd-writer](./agents/prd-writer.md) | Outcomes, flows, prioritised requirements, metrics with baselines, release criteria | Names a schema, endpoint, or library; changes the brief's premise |
+| [product-critic](./agents/product-critic.md) | Judges briefs and PRDs against a fixed rubric and returns a verdict | Rewrites the artifact; offers opinions on the idea's merit |
 
-The builder is itself an orchestrator. Inside it, a **coder** writes the task and a **reviewer** reviews the uncommitted diff, looping fix rounds until the review is clean:
+### Build pipeline
 
-```
-capy
- ├─ writer      → specs/<feature>.md
- ├─ architect   → ## Architecture appended
- ├─ planner     → specs/<feature>-tasks.md
- └─ builder (one per task)
-      ├─ coder     → writes the code
-      ├─ reviewer  → reviews the uncommitted diff
-      ├─ coder     → fix mode, applies findings
-      └─ reviewer  → re-reviews  ⟳ max 2 fix rounds
-           → returns clean → your commit gate
-```
+| Agent | Job | Never does |
+|-------|-----|-----------|
+| [writer](./agents/writer.md) | Turns a request into a spec unambiguous enough that two engineers build the same thing | Answers an open question by assumption |
+| [architect](./agents/architect.md) | Every technical decision before implementation — schema, contracts, types, dependency order | Writes code; offers "option A or B" instead of deciding |
+| [planner](./agents/planner.md) | An ordered task list, each task ≤2h and independently committable | Mixes concerns into one task |
+| [builder](./agents/builder.md) | Runs the write → review → fix loop for one task | Writes code or reviews a diff itself — it only coordinates |
+| [coder](./agents/coder.md) | Writes exactly one task, matching your codebase's patterns | Commits; touches a file the task didn't name |
+| [reviewer](./agents/reviewer.md) | Reviews the uncommitted diff against your conventions and the task's done conditions | Edits code; softens a blocker to stay polite |
 
-The coder is forbidden from committing, so the reviewer reads the working tree — review lands between writing and committing. A task reaches your commit gate only once the review is clean; if findings survive two fix rounds, the builder returns them to capy and capy asks you what to do.
+### Specialists
 
-You respond to prompts; capy handles coordination. Spec open questions and `[question]` findings are always yours to answer — no agent guesses on your behalf.
-
-### Option B — One phase at a time
-
-```
-"use the writer skill to write a spec for adding CSV export"
-```
-Review `specs/csv-export.md`. Edit if needed. Then:
-
-```
-"use the architect skill on specs/csv-export.md"
-```
-Review the `## Architecture` section. Resolve any `[DECISION]` items. Then:
-
-```
-"use the planner skill on specs/csv-export.md"
-```
-Review `specs/csv-export-tasks.md`. Approve the task list. Then:
-
-```
-/build Task 1 from specs/csv-export-tasks.md
-```
-The builder writes it, reviews it, and fixes what the review finds. Review the diff yourself, commit, and repeat for each task.
-
-To skip the review loop and just have the code written, use the coder skill instead:
-
-```
-"use the coder skill to implement Task 1 from specs/csv-export-tasks.md"
-```
-
-Neither one commits. You always review and commit each task before moving to the next.
+| Agent | Job |
+|-------|-----|
+| [security-auditor](./agents/security-auditor.md) | Audits auth flows, data access, and API exposure against your recorded security invariants |
+| [test-engineer](./agents/test-engineer.md) | Writes tests for behaviour that would catch a real bug, not tests that mirror the implementation |
 
 ---
 
-## Skill Catalog
+## Skills
 
-### Product (discovery pipeline)
+Skills load automatically when the conversation matches their trigger. You can also name one directly, or use its slash command.
 
-| Skill | Trigger | What it does |
+### Product — define what to build
+
+| Skill | Command | What it does |
 |-------|---------|--------------|
-| [discovery](./skills/discovery/SKILL.md) | Defining a new product, feature, or client engagement | Orchestrates interview → brief → PRD, with a critic loop on each artifact and approval gates between phases |
-| [interviewer](./skills/interviewer/SKILL.md) | A decision depends on knowledge only you or the client has | Researches the repo first, then asks one question per turn and records answers verbatim — marking gaps `[UNKNOWN]` rather than inventing them |
-| [brief-writer](./skills/brief-writer/SKILL.md) | Deciding whether something is worth building at all | Writes `product/brief.md` — problem with no solution in it, a named role, a falsifiable success signal, one page |
-| [prd-writer](./skills/prd-writer/SKILL.md) | An approved brief needs requirements | Writes `product/prd.md` — outcomes, flows, prioritised requirements, metrics with baselines, release criteria. Client-readable, no implementation detail |
-| [product-critic](./skills/product-critic/SKILL.md) | A brief or PRD needs review before anyone acts on it | Runs a fixed rubric — unattributed user claims, unfalsifiable metrics, dropped unknowns, broken traceability — and returns a verdict |
+| [discovery](./skills/discovery/SKILL.md) | `/discovery` | Orchestrates interview → brief → PRD, with a critic loop on each artifact and approval gates between phases |
+| [interviewer](./skills/interviewer/SKILL.md) | `/interview-me` | Researches the repo first, then asks one question per turn; marks gaps `[UNKNOWN]` rather than inventing them |
+| [brief-writer](./skills/brief-writer/SKILL.md) | `/brief` | Writes `product/brief.md` — one page on whether this is worth building |
+| [prd-writer](./skills/prd-writer/SKILL.md) | `/prd` | Writes `product/prd.md` — client-readable requirements with no implementation detail |
+| [product-critic](./skills/product-critic/SKILL.md) | `/critique` | Runs a fixed rubric: unattributed user claims, unfalsifiable metrics, dropped unknowns, broken traceability |
+| [idea-refine](./skills/idea-refine/SKILL.md) | — | For a feature already agreed worth building: turns it into actor, trigger, and outcome |
 
-### Build (capy pipeline)
+### Build — turn it into code
 
-| Skill | Trigger | What it does |
+| Skill | Command | What it does |
 |-------|---------|--------------|
-| [capy](./skills/capy/SKILL.md) | Orchestrating the full SDD pipeline end to end | Coordinates writer → architect → planner → builder-per-task, with developer approval gates between phases |
-| [writer](./skills/writer/SKILL.md) | Writing a formal spec before any code is touched | Explores the codebase, writes `specs/<feature>.md` covering user story, acceptance criteria, API surface, data model, and open questions |
-| [architect](./skills/architect/SKILL.md) | An approved spec needs a technical architecture | Appends `## Architecture` to the spec: DB schema with RLS, route contracts, TypeScript types, component decisions, and dependency order |
-| [planner](./skills/planner/SKILL.md) | Architecture needs to become an ordered task list | Writes `specs/<feature>-tasks.md` — one task per layer, each ≤2h and independently committable |
-| [builder](./skills/builder/SKILL.md) | Delivering one task written, reviewed, and fixed | Spawns a coder to write it and a reviewer to review the uncommitted diff, loops fix rounds until clean (max 2), returns to capy. Writes no code itself |
-| [conventions](./skills/conventions/SKILL.md) | Setting up capy in a codebase for the first time | Reads the stack, layout, security invariants, and verification commands out of the code and writes `.capy/conventions.md` — the file every other skill reviews against |
-| [coder](./skills/coder/SKILL.md) | Writing the code for one task, or applying review findings in fix mode | Reads spec + task list + every file it will touch first, matches existing patterns, implements exactly the task. Never commits |
+| [capy](./skills/capy/SKILL.md) | `/capy` | Orchestrates conventions → spec → architecture → tasks → builder-per-task, gating on you between phases |
+| [conventions](./skills/conventions/SKILL.md) | `/conventions` | Reads your codebase and writes `.capy/conventions.md` — the file every other skill judges against |
+| [writer](./skills/writer/SKILL.md) | `/spec` | Writes `specs/<feature>.md` — user story, acceptance criteria, API surface, data model, open questions |
+| [architect](./skills/architect/SKILL.md) | — | Appends `## Architecture` — schema, route contracts, types, component decisions, dependency order |
+| [planner](./skills/planner/SKILL.md) | `/plan` | Writes `specs/<feature>-tasks.md` — one task per layer, each independently committable |
+| [builder](./skills/builder/SKILL.md) | `/build` | Spawns coder + reviewer and loops fix rounds until the review is clean (max 2) |
+| [coder](./skills/coder/SKILL.md) | — | Implements exactly one task, or applies review findings in fix mode. Never commits |
+| [reviewer](./skills/reviewer/SKILL.md) | `/review` | Five-pass review — correctness → security → maintainability → tests → style — with severity tagging |
 
-### Review & Quality
+### Quality
 
-| Skill | Trigger | What it does |
-|-------|---------|--------------|
-| [reviewer](./skills/reviewer/SKILL.md) | Reviewing a PR or self-reviewing before merging | Five-pass review (correctness → security → maintainability → tests → style) with `[blocker]`/`[concern]`/`[nit]` tagging |
-| [security-auditor](./skills/security-auditor/SKILL.md) | Writing or auditing anything security-sensitive | Checks account scoping, input validation, auth middleware, supabaseAdmin usage, webhook verification, and secret handling |
-| [test-engineer](./skills/test-engineer/SKILL.md) | Writing E2E, integration, or unit tests | Writes complete, independent tests using semantic selectors, asserting on visible behavior |
+| Skill | What it does |
+|-------|--------------|
+| [security-auditor](./skills/security-auditor/SKILL.md) | Account scoping, input validation, auth middleware, admin-client misuse, webhook verification, secrets |
+| [test-engineer](./skills/test-engineer/SKILL.md) | Independent tests using semantic selectors, asserting on visible behaviour |
+| [debugging-and-error-recovery](./skills/debugging-and-error-recovery/SKILL.md) | Hypothesis loop: form theory → minimal reproduction → confirm or refute → fix root cause |
 
-### Define
+### Stack-specific
 
-| Skill | Trigger | What it does |
-|-------|---------|--------------|
-| [idea-refine](./skills/idea-refine/SKILL.md) | Idea is vague or underspecified | Asks structured questions to turn a vague need into a specific technical direction |
+Opt-in — these trigger on the technology rather than loading everywhere.
 
-### Plan
-
-| Skill | Trigger | What it does |
-|-------|---------|--------------|
-
-### Build
-
-| Skill | Trigger | What it does |
-|-------|---------|--------------|
-| [supabase-data-modeling](./skills/supabase-data-modeling/SKILL.md) | Adding tables, RLS policies, or writing migrations | Enforces migration naming, RLS policy templates, index conventions, and account-scoped queries |
-| [api-route-design](./skills/api-route-design/SKILL.md) | Creating or modifying Elysia routes | Enforces body schema validation, auth middleware patterns, error types, and Swagger documentation |
-| [nextjs-component-patterns](./skills/nextjs-component-patterns/SKILL.md) | Building Next.js pages or components | Guides server vs. client component decisions, data fetching patterns, and Tailwind conventions |
-
-### Verify
-
-| Skill | Trigger | What it does |
-|-------|---------|--------------|
-| [debugging-and-error-recovery](./skills/debugging-and-error-recovery/SKILL.md) | Stuck on a bug or unexpected behavior | Runs a hypothesis loop: form theory → find minimal reproduction → confirm or refute → fix root cause |
+| Skill | What it does |
+|-------|--------------|
+| [supabase-data-modeling](./skills/supabase-data-modeling/SKILL.md) | Migration naming, RLS policy templates, index conventions, account-scoped queries |
+| [api-route-design](./skills/api-route-design/SKILL.md) | Elysia body schema validation, auth middleware, error types, Swagger docs |
+| [nextjs-component-patterns](./skills/nextjs-component-patterns/SKILL.md) | Server vs. client component decisions, data fetching, Tailwind conventions |
 
 ### Ship
 
-| Skill | Trigger | What it does |
+| Skill | Command | What it does |
 |-------|---------|--------------|
-| [git-workflow-and-versioning](./skills/git-workflow-and-versioning/SKILL.md) | Committing, branching, or preparing a PR | Enforces conventional commits, atomic discipline, and trunk-based branching |
-| [deploy-checklist](./skills/deploy-checklist/SKILL.md) | Deploying to production | Runs a pre-deploy checklist: env vars, build verification, auth key alignment, smoke tests |
+| [git-workflow-and-versioning](./skills/git-workflow-and-versioning/SKILL.md) | — | Conventional commits, atomic discipline, trunk-based branching |
+| [deploy-checklist](./skills/deploy-checklist/SKILL.md) | `/ship` | Pre-deploy checklist: env vars, key alignment between services, build verification, smoke tests |
 
 ---
 
-## References
+## What Gets Written Where
 
-Static quick-reference checklists used alongside skills. References are for lookup; skills are for process.
+```
+.capy/conventions.md          your project's rules — written once, read by every agent
+product/interview-<topic>.md  what you told the interviewer, verbatim
+product/brief.md              is this worth building
+product/prd.md                what it must do — the client-facing artifact
+specs/<feature>.md            the technical spec, with its architecture section
+specs/<feature>-tasks.md      the ordered task list
+```
+
+---
+
+## References & Templates
+
+Static lookups used alongside skills. References are for looking things up; skills are for process.
 
 - [supabase-checklist.md](./references/supabase-checklist.md) — Migrations, RLS, query patterns
 - [clerk-auth-patterns.md](./references/clerk-auth-patterns.md) — JWT, webhooks, middleware
-- [deployment-checklist.md](./references/deployment-checklist.md) — Render + Vercel pre-deploy
-- [testing-patterns.md](./references/testing-patterns.md) — Playwright, Bun test patterns
+- [deployment-checklist.md](./references/deployment-checklist.md) — Pre-deploy verification
+- [testing-patterns.md](./references/testing-patterns.md) — Playwright and unit test patterns
 - [security-checklist.md](./references/security-checklist.md) — OWASP, CORS, input validation
 - [performance-checklist.md](./references/performance-checklist.md) — Core Web Vitals, API latency
+
+Templates filled in per project: [conventions](./templates/conventions.template.md) · [brief](./templates/brief.template.md) · [PRD](./templates/prd.template.md)
 
 ---
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide.
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 Key rules:
-- Skill descriptions must start with `"Use when"` — this is how Claude decides when to load them
+- Skill descriptions start with `"Use when"` — that string is how Claude decides to load them
+- Descriptions must not overlap; two skills that could fire on the same prompt make the choice a coin flip
 - Agent instructions are imperative — no hedging, no "you might want to"
-- No skill exceeds 1500 lines
+- Nothing stack-specific goes in a pipeline skill; it belongs in the conventions template
+
+---
+
+MIT © Dorian Morones
