@@ -10,8 +10,8 @@ Code written before requirements are clear is the leading cause of rewrites. **C
 
 | Type | Count | How it works |
 |------|-------|--------------|
-| **Skills** | 17 | Load automatically when the conversation context matches their trigger — no invocation needed. Can also be called by name in natural language. |
-| **Slash commands** | 7 | `/capy`, `/conventions`, `/spec`, `/plan`, `/build`, `/review`, `/ship` |
+| **Skills** | 22 | Load automatically when the conversation context matches their trigger — no invocation needed. Can also be called by name in natural language. |
+| **Slash commands** | 12 | `/discovery`, `/interview-me`, `/brief`, `/prd`, `/critique`, `/capy`, `/conventions`, `/spec`, `/plan`, `/build`, `/review`, `/ship` |
 | **Reference checklists** | 6 | Static quick-lookup docs for Supabase, Clerk, deployment, testing, security, and performance |
 
 Skills are not commands you run. Each skill has a `description` field that starts with "Use when...". When Claude detects the trigger condition in the conversation, the skill loads silently. You can also invoke any skill explicitly by naming it:
@@ -38,7 +38,7 @@ claude plugin marketplace add dorian-morones/capy-crew-agents
 claude plugin install capy-crew-agents
 ```
 
-After this, all 17 skills and 7 slash commands are active in every Claude Code session — no project-level `CLAUDE.md` changes required.
+After this, all 22 skills and 12 slash commands are active in every Claude Code session — no project-level `CLAUDE.md` changes required.
 
 **3. Update when new versions ship:**
 
@@ -46,6 +46,23 @@ After this, all 17 skills and 7 slash commands are active in every Claude Code s
 claude plugin marketplace update dorian-morones/capy-crew-agents
 claude plugin update capy-crew-agents
 ```
+
+---
+
+## Two Pipelines
+
+**`discovery`** decides what is worth building. **`capy`** builds it.
+
+```
+/discovery  →  interview  →  brief  →  PRD          ← what & why
+                                        │
+                                        ▼
+/capy       →  spec  →  architecture  →  tasks  →  build   ← how
+```
+
+Each phase's artifact is critiqued by a separate agent before you see it, and neither pipeline lets an agent answer a question that belongs to you — spec open questions, `[question]` findings, and anything a client alone knows all come back to you.
+
+Discovery hands off at the PRD. Starting the build is always your decision.
 
 ---
 
@@ -128,7 +145,17 @@ Neither one commits. You always review and commit each task before moving to the
 
 ## Skill Catalog
 
-### Pipeline
+### Product (discovery pipeline)
+
+| Skill | Trigger | What it does |
+|-------|---------|--------------|
+| [discovery](./skills/discovery/SKILL.md) | Defining a new product, feature, or client engagement | Orchestrates interview → brief → PRD, with a critic loop on each artifact and approval gates between phases |
+| [interviewer](./skills/interviewer/SKILL.md) | A decision depends on knowledge only you or the client has | Researches the repo first, then asks one question per turn and records answers verbatim — marking gaps `[UNKNOWN]` rather than inventing them |
+| [brief-writer](./skills/brief-writer/SKILL.md) | Deciding whether something is worth building at all | Writes `product/brief.md` — problem with no solution in it, a named role, a falsifiable success signal, one page |
+| [prd-writer](./skills/prd-writer/SKILL.md) | An approved brief needs requirements | Writes `product/prd.md` — outcomes, flows, prioritised requirements, metrics with baselines, release criteria. Client-readable, no implementation detail |
+| [product-critic](./skills/product-critic/SKILL.md) | A brief or PRD needs review before anyone acts on it | Runs a fixed rubric — unattributed user claims, unfalsifiable metrics, dropped unknowns, broken traceability — and returns a verdict |
+
+### Build (capy pipeline)
 
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
