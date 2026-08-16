@@ -1,6 +1,6 @@
 ---
 name: security-auditor
-description: Use when auditing API routes, auth flows, or data access patterns for security vulnerabilities in a multi-tenant SaaS application.
+description: Use when writing or auditing anything security-sensitive — auth flows, data access, API exposure, input handling, secrets, or code that processes external data.
 ---
 
 ## Overview
@@ -149,6 +149,38 @@ Fix: replace body.account_id with user.account_id from the Elysia context
 | High | Exploitable by any authenticated user against other accounts |
 | Medium | Requires specific conditions to exploit, limited impact |
 | Low | Defense-in-depth issue, no direct exploitability |
+
+### CORS Configuration
+
+Only allowed origins can make state-changing requests. In Render environment variables:
+
+```
+CORS_ORIGIN=https://app.<your-domain>,http://localhost:3000
+```
+
+Never use `origin: true` or wildcard CORS in production.
+
+
+### CSP Headers
+
+The Content Security Policy in `next.config.ts` controls what the frontend can load and connect to. When adding a new third-party service, add its domain to the appropriate directive:
+
+```typescript
+`connect-src 'self' ${API_URL} https://new-service.com`
+```
+
+
+### Environment Variable Security
+
+```bash
+# ✅ Never in code
+const key = process.env.SOME_SECRET_KEY;
+
+# ❌ Never committed
+SOME_SECRET_KEY=actual_value_here
+```
+
+Keep `.env` files in `.gitignore`. Provide `.env.example` with placeholder values only.
 
 ## Common Rationalizations
 

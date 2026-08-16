@@ -1,10 +1,10 @@
 # Performance Checklist
 
-Pre-ship performance review for actify-web (Core Web Vitals) and actify-api (response times, query efficiency).
+Pre-ship performance review for <frontend-app> (Core Web Vitals) and <api-service> (response times, query efficiency).
 
 ---
 
-## actify-web (Frontend)
+## <frontend-app> (Frontend)
 
 ### Core Web Vitals Targets
 
@@ -46,7 +46,7 @@ Pre-ship performance review for actify-web (Core Web Vitals) and actify-api (res
 
 ---
 
-## actify-api (Backend)
+## <api-service> (Backend)
 
 ### Response Time Targets
 

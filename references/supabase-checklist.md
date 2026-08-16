@@ -1,6 +1,6 @@
 # Supabase Checklist
 
-Reference for Supabase migrations, RLS policies, query patterns, and indexes in the actify stack.
+Reference for Supabase migrations, RLS policies, query patterns, and indexes in this stack.
 
 ---
 

@@ -1,6 +1,6 @@
 # Testing Patterns
 
-Reference for Playwright E2E tests, Bun unit tests, and testing conventions in the actify stack.
+Reference for Playwright E2E tests, Bun unit tests, and testing conventions in this stack.
 
 ---
 

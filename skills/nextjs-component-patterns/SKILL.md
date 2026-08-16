@@ -1,11 +1,11 @@
 ---
 name: nextjs-component-patterns
-description: Use when building Next.js pages, layouts, components, or data fetching patterns in actify-web.
+description: Use when building Next.js App Router pages, layouts, components, or data fetching patterns.
 ---
 
 ## Overview
 
-Next.js App Router has strong opinions about where code runs (server vs. client), how data is fetched, and how state is managed. Ignoring these opinions leads to waterfall fetches, unnecessary client bundles, and hydration errors. This skill encodes the patterns specific to actify-web — App Router, Clerk auth, Zustand state, Tailwind v4, and the API client.
+Next.js App Router has strong opinions about where code runs (server vs. client), how data is fetched, and how state is managed. Ignoring these opinions leads to waterfall fetches, unnecessary client bundles, and hydration errors. This skill encodes App Router patterns, with Clerk auth, Zustand state, and Tailwind as the worked example. Check `.capy/conventions.md` for the state, styling, and auth libraries this project actually uses.
 
 ## When to Use
 

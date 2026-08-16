@@ -43,6 +43,13 @@ The architect's output is an `## Architecture` section appended to the spec file
 
 ## Specific Techniques
 
+### Ground Every Decision in the Project's Conventions
+
+Read `.capy/conventions.md` before making any decision. It records this project's stack, layout, security invariants, and naming — the architecture must fit that, not a reference stack.
+
+The templates below use a Postgres + row-level-security + JWT-claim tenancy model as a worked example, because it is concrete. Translate them to whatever this project actually uses. If the project has no conventions file, read the existing schema and routes and follow what is there — and say in the architecture section which patterns you inferred.
+
+
 ### Architecture Section Template
 
 ```markdown

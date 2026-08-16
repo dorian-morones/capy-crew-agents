@@ -22,11 +22,11 @@ Every comment is prefixed with its severity so the developer knows what must be 
 
 ## Core Process
 
-1. **Read the full diff** — Understand what changed and why before commenting on any individual line. Read the spec or PR description if available.
+1. **Read the conventions and the diff** — Read `.capy/conventions.md` if it exists, then the full diff. Understand what changed and why before commenting on any individual line. Read the spec or PR description if available.
 
 2. **Correctness pass** — Does this code do what it is supposed to do? Check edge cases, null handling, error paths, and race conditions. Can it fail silently?
 
-3. **Security pass** — Check input validation, account scoping, auth middleware, secrets handling, and webhook verification. Any finding here is at least `[concern]` and likely `[blocker]`.
+3. **Security pass** — Check the project's tenancy rule, input validation, auth middleware, secrets handling, and webhook verification. Any finding here is at least `[concern]` and likely `[blocker]`.
 
 4. **Maintainability pass** — Is the code readable? Is it appropriately scoped? Is it unnecessarily complex for what it does?
 
@@ -51,28 +51,37 @@ Every comment gets one prefix:
 
 Never write a `[blocker]` as a suggestion. If it will break production, say so directly.
 
-### Stack-Specific Checks
+### Convention Checks
 
-**API routes (Elysia):**
-- Does every POST/PUT/PATCH have an Elysia body schema?
-- Is `account_id` from `user.account_id` (JWT), not `body.account_id`?
-- Does every error use `ApiError`, `NotFoundError`, or `UnauthorizedError` — not raw `Error` or `{ error: string }`?
-- Is `supabaseAdmin` used in a route that also has `auth` middleware? (blocker — RLS bypass)
+Read `.capy/conventions.md` before reviewing. It defines what correct means in this codebase — stack, layout, security invariants, naming, verification commands. Review against that file, not against framework documentation or your own preferences.
 
-**Frontend (Next.js):**
-- Is `"use client"` justified? Does the component actually need hooks or browser APIs?
-- Is data fetching in a hook under `src/hooks/`, not inline in the component?
-- Are toast notifications using `sonner`?
-- Are analytics events tracked for the key user action?
+A finding that contradicts the project's recorded conventions is not a finding. A change that violates them is at least a `[concern]`.
 
-**Auth (Clerk):**
-- Is a new route that should be protected actually behind the auth middleware?
-- Is a new public route (like `/onboarding`) added to `isPublicRoute` in `proxy.ts`?
+If there is no conventions file, derive the expected pattern from two or three neighbouring files in the same layer, and add one `[question]` asking the developer to run the `conventions` skill — an ungrounded review produces confident nonsense.
+
+### Checks That Apply in Every Codebase
+
+Regardless of stack, these are always worth a pass:
+
+**Authorization and tenancy:**
+- Is the tenant/account/user identifier taken from the verified session or token — never from request input (body, query, path, header)?
+- Does any code path use an admin or service-role client that bypasses access control, in a context where user-scoped access was expected? (blocker)
+- Is every new endpoint that touches user data actually behind the project's auth middleware?
+- Is a new public route deliberately public, and recorded as such?
+
+**Input and output:**
+- Is external input validated before use — body, query params, webhook payloads, file uploads?
+- Are errors raised through the project's error type rather than ad hoc shapes?
+- Do error messages avoid leaking internal detail (stack traces, SQL, secrets) to the client?
+
+**Secrets and logging:**
+- Any hardcoded credentials, keys, or tokens?
+- Does any log statement include credentials, tokens, or personal data?
 
 **Tests:**
-- Does the test assert on visible outcomes (text, URL, response status) — not DOM structure?
-- Does the test use `getByRole`, `getByLabel`, or `getByText` — not CSS class selectors?
-- Does the test clean up its own data?
+- Does the test assert on visible outcomes (text, URL, response status) rather than internal structure?
+- Does it use semantic selectors (role, label, text) rather than CSS classes?
+- Does it clean up its own data?
 
 ### Review Comment Format
 
@@ -82,6 +91,16 @@ account_id is sourced from body.account_id instead of user.account_id.
 Impact: any authenticated user can read another account's feedback by sending a different account_id.
 Fix: replace body.account_id with user.account_id from the JWT context.
 ```
+
+### PR Size
+
+| Size | Lines changed | Approach |
+|------|--------------|---------|
+| Small | < 200 | Review all at once |
+| Medium | 200–500 | Review file by file, check integration points |
+| Large | > 500 | Request a split unless it is a rename or move. If you must review it, focus on interfaces and data flow |
+
+Large diffs obscure bugs. If a diff is too big to review properly, say so — that is itself a finding.
 
 ## Common Rationalizations
 
@@ -104,6 +123,7 @@ Fix: replace body.account_id with user.account_id from the JWT context.
 
 - [ ] All `[blocker]` items are resolved before the PR is approved
 - [ ] All `[question]` items have been answered
-- [ ] Account scoping was explicitly checked for any route that reads or writes user data
+- [ ] `.capy/conventions.md` was read, or its absence was raised as a `[question]`
+- [ ] The project's tenancy rule was explicitly checked for any code that reads or writes user data
 - [ ] Auth middleware was checked for every new or modified route
 - [ ] Every comment includes what the problem is, what the impact is, and what the fix is

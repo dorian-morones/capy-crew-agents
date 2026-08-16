@@ -1,10 +1,10 @@
 # Deployment Checklist
 
-Pre-deploy and post-deploy checklist for actify-web (Vercel) and actify-api (Render).
+Pre-deploy and post-deploy checklist for <frontend-app> (Vercel) and <api-service> (Render).
 
 ---
 
-## actify-web → Vercel
+## <frontend-app> → Vercel
 
 ### Pre-Deploy
 
@@ -12,11 +12,11 @@ Pre-deploy and post-deploy checklist for actify-web (Vercel) and actify-api (Ren
 
 | Variable | Production value | Notes |
 |----------|-----------------|-------|
-| `NEXT_PUBLIC_API_URL` | `https://api.useactify.com` | Must start with `https://` |
+| `NEXT_PUBLIC_API_URL` | `https://api.<your-domain>` | Must start with `https://` |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `pk_live_*` | Live key, not test |
 | `CLERK_SECRET_KEY` | `sk_live_*` | Live key, must match publishable key tier |
 | `NEXT_PUBLIC_POSTHOG_KEY` | `phc_*` | From PostHog dashboard |
-| `NEXT_PUBLIC_POSTHOG_HOST` | `https://app.useactify.com/ingest` | Proxy URL, not direct PostHog |
+| `NEXT_PUBLIC_POSTHOG_HOST` | `https://app.<your-domain>/ingest` | Proxy URL, not direct PostHog |
 
 **Code checks:**
 - [ ] `pnpm build` passes locally
@@ -27,12 +27,12 @@ Pre-deploy and post-deploy checklist for actify-web (Vercel) and actify-api (Ren
 - [ ] No `middleware.ts` file (conflicts with `proxy.ts`)
 
 **Domain:**
-- [ ] `app.useactify.com` → Production deployment in Vercel
+- [ ] `app.<your-domain>` → Production deployment in Vercel
 - [ ] SSL certificate active
 
 ### Post-Deploy
 
-- [ ] `https://app.useactify.com` loads without error
+- [ ] `https://app.<your-domain>` loads without error
 - [ ] Sign in works (Clerk redirects properly)
 - [ ] Dashboard loads data from API
 - [ ] No 401 or 500 errors in Vercel Function logs
@@ -40,7 +40,7 @@ Pre-deploy and post-deploy checklist for actify-web (Vercel) and actify-api (Ren
 
 ---
 
-## actify-api → Render
+## <api-service> → Render
 
 ### Pre-Deploy
 
@@ -52,7 +52,7 @@ Pre-deploy and post-deploy checklist for actify-web (Vercel) and actify-api (Ren
 | `SUPABASE_URL` | `https://[project].supabase.co` | From Supabase dashboard |
 | `SUPABASE_SERVICE_ROLE_KEY` | `eyJ*` | Service role key, not anon key |
 | `DATABASE_URL` | `postgres://...` | From Supabase → Settings → Database |
-| `CORS_ORIGIN` | `http://localhost:3000,https://app.useactify.com` | Comma-separated, no trailing slash |
+| `CORS_ORIGIN` | `http://localhost:3000,https://app.<your-domain>` | Comma-separated, no trailing slash |
 | `POSTHOG_API_KEY` | `phc_*` | For OpenTelemetry log shipping |
 | `PORT` | (set by Render) | Don't set manually |
 
@@ -69,13 +69,13 @@ Pre-deploy and post-deploy checklist for actify-web (Vercel) and actify-api (Ren
 - [ ] Health check path: `/`
 
 **Domain:**
-- [ ] `api.useactify.com` → Render service custom domain
+- [ ] `api.<your-domain>` → Render service custom domain
 - [ ] SSL certificate active
 
 ### Post-Deploy
 
-- [ ] `GET https://api.useactify.com/` returns 200
-- [ ] `GET https://api.useactify.com/swagger` loads API docs
+- [ ] `GET https://api.<your-domain>/` returns 200
+- [ ] `GET https://api.<your-domain>/swagger` loads API docs
 - [ ] Auth flow works: sign in on frontend, API calls succeed
 - [ ] No errors in Render logs (check first 5 minutes)
 - [ ] PostHog receiving logs (check PostHog → Logs)
@@ -124,7 +124,7 @@ git push origin main  # triggers auto-deploy
 | Setting | Local | Production |
 |---------|-------|------------|
 | Clerk keys | `pk_test_*` / `sk_test_*` | `pk_live_*` / `sk_live_*` |
-| API URL | `http://localhost:3001` | `https://api.useactify.com` |
-| PostHog host | Direct or skip | `https://app.useactify.com/ingest` |
-| CORS origin | `http://localhost:3000` | `https://app.useactify.com` |
+| API URL | `http://localhost:3001` | `https://api.<your-domain>` |
+| PostHog host | Direct or skip | `https://app.<your-domain>/ingest` |
+| CORS origin | `http://localhost:3000` | `https://app.<your-domain>` |
 | Render plan | N/A | Paid (for agents) |

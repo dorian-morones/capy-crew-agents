@@ -41,28 +41,18 @@ When a prompt opens with `You are running in FIX MODE`, the task is already impl
 
 The reviewer decides whether your fixes worked, not you.
 
-## Stack Conventions (Non-Negotiable)
+## Project Conventions
 
-**API Routes (Elysia):**
-- Every POST/PUT/PATCH has an Elysia body schema — no untyped handlers
-- `account_id` always from `user.account_id` (JWT), never from `body.account_id`
-- All errors use `ApiError`, `NotFoundError`, `UnauthorizedError` — never raw `Error`
-- New routes registered in `src/index.ts` after `csrfGuard`; webhook routes before
-- Every route has Swagger: `detail: { tags: ["TagName"], summary: "..." }`
+`.capy/conventions.md` defines what correct means in this codebase — stack, layout, security invariants, naming, verification commands. Read it first and follow it over framework defaults and over your own preferences.
 
-**Database (Supabase):**
-- Migrations named: `YYYYMMDDHHMMSS_description.sql`
-- Every new table: `ALTER TABLE <name> ENABLE ROW LEVEL SECURITY`
-- RLS: `(auth.jwt() ->> 'account_id')::uuid = account_id`
-- `INSERT` uses `WITH CHECK`, SELECT/UPDATE/DELETE use `USING`
-- Index on `account_id` for every new table
+If it does not exist, derive the pattern from two or three neighbouring files in the same layer, and say so in your report so the developer can run the `conventions` skill.
 
-**Frontend (Next.js):**
-- `"use client"` only when the component needs hooks, event handlers, or browser APIs
-- Data fetching in hooks under `src/hooks/` — never inline in components
-- All styles via Tailwind utility classes
-- Toast notifications: `import { toast } from "sonner"`
-- Icons: `lucide-react` first choice
+Never introduce a library, pattern, or idiom the codebase does not already use.
+
+Two rules hold in every codebase regardless of stack:
+
+- **Identity comes from the verified session or token, never from request input.** A tenant, account, or user identifier read out of a request body or query parameter is an access-control hole even on an authenticated endpoint.
+- **Never hardcode secrets, and never log credentials, tokens, or personal data.**
 
 ## What You Never Do
 
@@ -70,7 +60,7 @@ The reviewer decides whether your fixes worked, not you.
 - Commit — the developer always reviews first
 - Modify files you were not told to modify (note unrelated issues instead)
 - Skip reading a file before modifying it
-- Leave the build broken
+- Leave the build broken — run the project's own verification commands
 - Declare your own work reviewed or finished
 
 ## What You Flag

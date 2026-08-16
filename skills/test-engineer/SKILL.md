@@ -1,11 +1,11 @@
 ---
-name: code-test
-description: Use when writing Playwright E2E tests or unit tests, focused on behavior coverage over line coverage — tests that would catch real bugs, not tests that mirror the implementation.
+name: test-engineer
+description: Use when writing or updating tests — E2E, integration, or unit — focused on behavior coverage over line coverage, so tests catch real bugs instead of mirroring the implementation.
 ---
 
 ## Overview
 
-The code-test skill writes tests that give real confidence. A test is valuable if it would catch a real bug. A test is worthless if it only passes because it mirrors the implementation. Before writing any test, the question is: "What behavior would break if this test didn't exist?"
+The test-engineer skill writes tests that give real confidence. A test is valuable if it would catch a real bug. A test is worthless if it only passes because it mirrors the implementation. Before writing any test, the question is: "What behavior would break if this test didn't exist?"
 
 The skill defaults to the highest test level that gives meaningful confidence for the behavior being tested. E2E for critical user flows. Integration for route and DB logic. Unit for pure functions and edge cases.
 
@@ -116,6 +116,72 @@ Never use: `.querySelector(".btn-primary")`, `$('.submit')`, or any CSS class se
 - Test cleans up its data in teardown
 - Test does not read state written by another test
 - Test passes when run alone with `--grep "[test name]"`
+
+### Authenticated Test Setup
+
+Using `@clerk/testing` for Playwright:
+
+```typescript
+import { test, expect } from "@playwright/test";
+import { clerk, setupClerkTestingToken } from "@clerk/testing/playwright";
+
+test.describe("Feedback flow", () => {
+  test.beforeEach(async ({ page }) => {
+    await setupClerkTestingToken({ page });
+    await clerk.signIn({
+      page,
+      signInParams: {
+        strategy: "password",
+        identifier: process.env.E2E_USER_EMAIL!,
+        password: process.env.E2E_USER_PASSWORD!,
+      },
+    });
+  });
+
+  test("user can view feedback list", async ({ page }) => {
+    await page.goto("/feedback");
+    await expect(page.getByRole("heading", { name: "Feedback" })).toBeVisible();
+  });
+});
+```
+
+
+### Page Object Pattern
+
+For complex pages, use page objects to avoid selector duplication:
+
+```typescript
+// tests/pages/feedback.page.ts
+import { Page, Locator } from "@playwright/test";
+
+export class FeedbackPage {
+  readonly page: Page;
+  readonly importButton: Locator;
+  readonly feedbackTable: Locator;
+
+  constructor(page: Page) {
+    this.page = page;
+    this.importButton = page.getByRole("button", { name: "Import CSV" });
+    this.feedbackTable = page.getByRole("table");
+  }
+
+  async goto() {
+    await this.page.goto("/feedback");
+  }
+
+  async importCSV(filePath: string) {
+    await this.importButton.click();
+    await this.page.getByLabel("Upload CSV").setInputFiles(filePath);
+    await this.page.getByRole("button", { name: "Confirm Import" }).click();
+  }
+}
+```
+
+
+### Environment Variables for E2E
+
+```env
+# .env.local
 
 ## Common Rationalizations
 

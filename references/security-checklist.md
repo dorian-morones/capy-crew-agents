@@ -1,6 +1,6 @@
 # Security Checklist
 
-Pre-ship security review for API routes, frontend code, and infrastructure in the actify stack.
+Pre-ship security review for API routes, frontend code, and infrastructure in this stack.
 
 ---
 
@@ -47,7 +47,7 @@ Pre-ship security review for API routes, frontend code, and infrastructure in th
 ## CORS
 
 - [ ] `CORS_ORIGIN` explicitly lists allowed origins — no wildcards
-- [ ] Production origin (`https://app.useactify.com`) is in `CORS_ORIGIN`
+- [ ] Production origin (`https://app.<your-domain>`) is in `CORS_ORIGIN`
 - [ ] `origin: true` or `origin: *` never used in production
 
 ---

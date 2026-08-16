@@ -1,11 +1,11 @@
 ---
 name: api-route-design
-description: Use when creating or modifying Elysia API routes, middleware, or authentication patterns in actify-api.
+description: Use when creating or modifying API routes, middleware, or authentication patterns in an Elysia/Bun backend.
 ---
 
 ## Overview
 
-API routes are the contract between the frontend and backend. A poorly designed route is hard to test, easy to break, and difficult to secure. This skill encodes patterns specific to the Elysia/Bun stack used in actify-api — including auth middleware, CSRF handling, error responses, and the conventions that keep routes consistent across the codebase.
+API routes are the contract between the frontend and backend. A poorly designed route is hard to test, easy to break, and difficult to secure. This skill encodes patterns for an Elysia/Bun backend — auth middleware, CSRF handling, error responses, and the conventions that keep routes consistent. Where it names a specific helper or error type, check `.capy/conventions.md` for what this project actually uses.
 
 ## When to Use
 

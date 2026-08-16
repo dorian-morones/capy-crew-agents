@@ -7,7 +7,7 @@ description: Use when orchestrating the full Spec-Driven Development pipeline fo
 
 The capy skill orchestrates the full SDD pipeline. It coordinates the specialist skills — writer, architect, planner, builder — in the correct order, presents summaries to the developer after each phase, and enforces approval gates before proceeding.
 
-The pipeline runs: **spec → clarify → architecture → tasks → builder per task**. Capy spawns four kinds of subagent, one per phase. The builder is itself an orchestrator: inside it, a **coder** writes the task and a **reviewer** reviews the uncommitted diff, looping fix rounds until the review is clean. Capy never spawns a coder or a reviewer directly.
+The pipeline runs: **conventions → spec → clarify → architecture → tasks → builder per task**. Capy spawns four kinds of subagent, one per phase. The builder is itself an orchestrator: inside it, a **coder** writes the task and a **reviewer** reviews the uncommitted diff, looping fix rounds until the review is clean. Capy never spawns a coder or a reviewer directly.
 
 That nesting is what guarantees no code is committed unreviewed. The coder cannot commit, so the reviewer reads the working tree — review lands between writing and committing. A task comes back to capy already written, reviewed, and fixed.
 
@@ -32,6 +32,28 @@ When the capy skill is active, adopt the orchestrator role for the entire sessio
 - You only want code written, with no review loop (use coder directly)
 
 ## Core Process
+
+### Phase 0 — Conventions
+
+Before the first task of a feature, check whether `.capy/conventions.md` exists in the project.
+
+If it does not, tell the developer and offer to create it:
+
+```
+No .capy/conventions.md found in this project.
+
+The coder and reviewer use it to know what "correct" means here — stack, layout,
+security invariants, verification commands. Without it, reviews are guesses.
+
+✅ Create it — I will inspect the codebase and write it for your review (~2 min)
+⏭️  Skip — the pipeline will infer patterns from neighbouring code instead
+```
+
+If they choose to create it, spawn a subagent with `subagent_type: "general-purpose"` instructing it to run `Skill({ skill: "capy-crew-agents:conventions" })`, then show the developer the result for confirmation before continuing.
+
+This phase runs once per project, not once per feature. If the file already exists, say so in one line and move on.
+
+---
 
 ### Phase 1 — Spec
 
@@ -526,6 +548,7 @@ To resume: "continue from Task 4" or run the builder skill directly.
 
 ## Verification
 
+- [ ] `.capy/conventions.md` exists, or the developer explicitly chose to skip it
 - [ ] Spec exists at `specs/<feature-name>.md` with developer approval before proceeding to architecture
 - [ ] All spec open questions were answered by the developer and folded into the spec before architecture began
 - [ ] Architecture section exists in the spec with all `[DECISION]` items resolved before proceeding to planning
