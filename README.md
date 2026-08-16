@@ -1,6 +1,6 @@
-# Capy Crew Agents
+# Capy Crew
 
-![capy-crew-agents](./banner.png)
+![Capy Crew](./banner.png)
 
 **A crew of specialist AI agents that define what to build, then build it — and never guess on your behalf.**
 
@@ -65,6 +65,8 @@ All 22 skills and 12 commands are then active in every Claude Code session — n
 claude plugin marketplace update dorian-morones/capy-crew-agents
 claude plugin update capy-crew-agents
 ```
+
+> The plugin installs under the id `capy-crew-agents` — that's the package name, and it's also the prefix on every skill (`capy-crew-agents:writer`). Capy Crew is the crew; `capy-crew-agents` is how you install it.
 
 ---
 
